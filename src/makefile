@@ -1,10 +1,24 @@
-all:
-	bison -d -o parser.cpp parser.y
-	lex -o tokens.cpp tokens.l
-	g++ -o mathy *.cpp
+CXX := g++
+CXXFLAGS := 
+LINKFLAGS := -O3
+YACC := bison
+LEX := flex
 
-release:
-	bison -d -o parser.cpp parser.y
-	lex -o tokens.cpp tokens.l
-	g++ -o mathy *.cpp -static -O3
+OBJECTS := Function.o main.o Natives.o Node.o parser.o Rewriter.o tokens.o
+EXECUTABLE := mathy
+
+all: mathy
+
+mathy: $(OBJECTS)
+	$(CXX) $(OBJECTS) -o $(EXECUTABLE)
+
+%.o: %.c
+		$(CXX) -c -o $@ $< $(CXXFLAGS)
+
+parser.cpp: parser.y
+	$(YACC) -d -o $@ $<
+
+tokens.cpp: tokens.l
+	$(LEX) -o $@ $<
+
 
