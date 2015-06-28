@@ -32,12 +32,30 @@ AnyValue(defined), value(value)
 
 bool IntegerTemplate::matches(ExpressionNode* expression)
 {
-	IntegerNode* it = dynamic_cast<IntegerNode*> (expression);
-	if (it != 0) {
-		if (!defined || it->getValue() == value)
-			return true;
-	}
-	return false;
+    IntegerNode* it = dynamic_cast<IntegerNode*> (expression);
+    if (it != 0) {
+        if (!defined || it->getValue() == value)
+            return true;
+    }
+    return false;
+}
+
+
+
+VariableTemplate::VariableTemplate(bool defined, const std::string& name) :
+AnyValue(defined), name(name)
+{
+}
+
+
+bool VariableTemplate::matches(ExpressionNode* expression)
+{
+    VariableNode* vn = dynamic_cast<VariableNode*> (expression);
+    if (vn != 0) {
+        if (!defined || vn->getString() == name)
+            return true;
+    }
+    return false;
 }
 
 

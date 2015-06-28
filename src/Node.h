@@ -32,6 +32,12 @@ public:
 };
 
 
+class StatementNode :
+        public virtual ExpressionNode
+{
+};
+
+
 class ConstantNode :
 	public ExpressionNode
 {
@@ -85,6 +91,10 @@ class VariableNode :
 public:
 	VariableNode(const std::string& value);
 	
+    /*!
+     * \brief getString
+     * \return the name of this variable
+     */
 	virtual std::string getString(void) const;
 	virtual ExpressionNode* evaluate(GarbageBag& gb);
 	
@@ -93,7 +103,7 @@ public:
 
 
 class ParentNode :
-	public ExpressionNode
+    public virtual ExpressionNode
 {
 protected:
 	bool deleteArguments;
@@ -153,6 +163,18 @@ protected:
 public:
 	inline ExpressionNode* getLeft(void) { return a; }
 	inline ExpressionNode* getRight(void) { return b; }
+};
+
+
+class AssignmentNode :
+        public OperationNode,
+        public StatementNode
+{
+public:
+    AssignmentNode(ExpressionNode* a, ExpressionNode* b);
+    virtual std::string getOperator(void) const;
+    virtual std::string getString(void) const;
+    virtual ExpressionNode* evaluate(GarbageBag& gb);
 };
 
 

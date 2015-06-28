@@ -27,10 +27,20 @@ public:
 class IntegerTemplate : public AnyValue
 {
 protected:
-	long long value;
+    long long value;
 public:
-	IntegerTemplate(bool defined, long long value);
-	virtual bool matches(ExpressionNode* expression);
+    IntegerTemplate(bool defined, long long value);
+    virtual bool matches(ExpressionNode* expression);
+};
+
+
+class VariableTemplate : public AnyValue
+{
+protected:
+    std::string name;
+public:
+    VariableTemplate(bool defined, const std::string& name);
+    virtual bool matches(ExpressionNode* expression);
 };
 
 

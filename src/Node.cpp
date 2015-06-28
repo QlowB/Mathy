@@ -339,6 +339,32 @@ std::string OperationNode::getString(void) const
 }
 
 
+AssignmentNode::AssignmentNode(ExpressionNode *a, ExpressionNode *b) :
+    OperationNode(a, b)
+{
+}
+
+
+std::string AssignmentNode::getOperator(void) const
+{
+    return ":=";
+}
+
+
+std::string AssignmentNode::getString(void) const
+{
+    return a->getString() + " " + getOperator() + " " + b->getString();
+}
+
+
+ExpressionNode* AssignmentNode::evaluate(GarbageBag& gb)
+{
+    return gb.addReference(new AssignmentNode(
+        a->evaluate(gb), b->evaluate(gb)
+    ));
+}
+
+
 AdditionNode::AdditionNode(ExpressionNode* a, ExpressionNode* b) :
     PlusMinus(a, b)
 {

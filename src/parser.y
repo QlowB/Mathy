@@ -6,12 +6,18 @@
     ExpressionNode* expr; /* the top level root node of our syntax tree */
 
     extern int yylex();
-    void yyerror(const char *s) { printf("parse error: %s\n", s); }
+    void yyerror(const char *s)
+    {
+        printf("parse error: %s\n", s);
+        while(yylex());
+    }
 %}
 
 /* define data structure for parser use */
 %union {
     ExpressionNode* expressionNode;
+    StatementNode* statementNode;
+
     ConstantNode* constantNode;
     IntegerNode* integerNode;
     RealNode* realNode;
@@ -21,6 +27,8 @@
     OperationNode* operationNode;
     AdditionNode* additionNode;
     SubtractionNode* subtractionNode;
+
+    AssignmentNode* assignmentNode;
     
     std::vector<ExpressionNode*>* expressionList;
     
@@ -35,6 +43,7 @@
  */
 %token <string> TIDENTIFIER TINTEGER TREAL
 
+%token <token> TERROR
 %token <token> TNEWLINE
 %token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON
 %token <string> TOPERATOR
@@ -52,9 +61,11 @@
 
 %type <operationNode> operation
 %type <operationNode> addition subtraction multiplication modulo division power
-
+%type <assignmentNode> assignment
+%type <statementNode> statement
 
 /* Operator precedence for mathematical operators */
+%nonassoc TASSIGNMENT
 %left TPLUS TMINUS
 %left TMUL TDIV TMOD
 %left TPOW
@@ -95,6 +106,20 @@ expression:
     |
     TMINUS expression {
         $$ = new SubtractionNode(new IntegerNode(0), $2);
+    }
+    |
+    statement {
+        $$ = $1;
+    };
+
+statement:
+    assignment {
+        $$ = $1;
+    };
+
+assignment:
+    expression TASSIGNMENT expression {
+        $$ = new AssignmentNode($1, $3);
     };
 
 constant:

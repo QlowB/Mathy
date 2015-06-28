@@ -6,6 +6,7 @@
 #define TOKEN(t) (yylval.token = t)
 bool end_of_file = false;
 extern "C" int yywrap() { end_of_file = true; return 1; }
+extern void yyerror(const char *s);
 %}
 
 %%
@@ -23,6 +24,7 @@ extern "C" int yywrap() { end_of_file = true; return 1; }
 "^"                     return TOKEN(TPOW);
 "mod"                   return TOKEN(TMOD);
 "%"                     return TOKEN(TMOD);
+":="                    return TOKEN(TASSIGNMENT);
 
 "("                     return TOKEN(TLPAREN);
 ")"                     return TOKEN(TRPAREN);
@@ -36,6 +38,6 @@ extern "C" int yywrap() { end_of_file = true; return 1; }
 
 ";"                     yyterminate();
 [\0\-1]                 yyterminate();
-.                       printf("Unknown token!\n"); yyterminate();
+.                       return TERROR;
 
 %%

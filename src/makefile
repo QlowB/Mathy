@@ -1,21 +1,21 @@
-CXX := g++
-CXXFLAGS := -O3 
-YACC := bison
-LEX := flex
+CXX         := clang++
+CXXFLAGS    := -O3
+YACC        := bison
+LEX         := flex
 
-OBJECTS := Function.o main.o Natives.o Node.o parser.o Rewriter.o tokens.o
-EXECUTABLE := mathy
+OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o
+EXECUTABLE  := mathy
 
-all: mathy
+all: $(EXECUTABLE)
 
-mathy: $(OBJECTS)
+$(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(OBJECTS) -o $(EXECUTABLE)
 
 %.o: %.c
 		$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 parser.cpp: parser.y
-	$(YACC) -d -o $@ $<
+	$(YACC) --defines=parser.h -o $@ $<
 
 tokens.cpp: tokens.l
 	$(LEX) -o $@ $<
