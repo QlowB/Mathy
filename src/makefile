@@ -1,6 +1,5 @@
 CXX := g++
-CXXFLAGS := 
-LINKFLAGS := -O3
+CXXFLAGS := -O3 
 YACC := bison
 LEX := flex
 
