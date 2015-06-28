@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.0.  */
+/* A Bison parser, made by GNU Bison 3.0.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -71,7 +71,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 12 "parser.y" /* yacc.c:1915  */
+#line 13 "parser.y" /* yacc.c:1909  */
 
     ExpressionNode* expressionNode;
     ConstantNode* constantNode;
@@ -89,7 +89,7 @@ union YYSTYPE
     int token;
     std::string* string;
 
-#line 93 "parser.hpp" /* yacc.c:1915  */
+#line 93 "parser.hpp" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

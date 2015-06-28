@@ -49,7 +49,7 @@ public:
 	Sin(void);
 	virtual FloatVal evaluate(FloatVal args) const;
 	
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -59,7 +59,7 @@ class Cos :
 public:
 	Cos(void);
 	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -69,7 +69,7 @@ class Tan :
 public:
 	Tan(void);
 	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -79,7 +79,7 @@ class Exp :
 public:
 	Exp(void);
 	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -89,7 +89,27 @@ class Ln :
 public:
 	Ln(void);
 	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+};
+
+
+class Sinh :
+	public NativeNumFunction
+{
+public:
+	Sinh(void);
+	virtual FloatVal evaluate(FloatVal args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+};
+
+
+class Cosh :
+	public NativeNumFunction
+{
+public:
+	Cosh(void);
+	virtual FloatVal evaluate(FloatVal args) const;
+	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -100,7 +120,7 @@ public:
 	DerivativeFunction(const std::string& name);
 	virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 	
-	ExpressionNode* getDerivative(ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const;
+	virtual ExpressionNode* getDerivative(ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const;
 };
 
 
@@ -119,7 +139,9 @@ public:
 	static Tan tan;
 	static Exp exp;
 	static Ln ln;
-	
+    static Sinh sinh;
+    static Cosh cosh;
+
 private:
 };
 

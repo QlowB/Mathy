@@ -14,10 +14,10 @@ int main(int argc, char** argv) {
 	while (true) {
 		cout << ">> ";
 		cout.flush();
-                ::yyparse();
+        ::yyparse();
 
-                if (end_of_file)
-                    break;
+        if (end_of_file)
+            break;
 		if (::expr != 0) {
 			GarbageBag gb;
 			try {
@@ -32,7 +32,8 @@ int main(int argc, char** argv) {
 				cerr.flush();
 			}
 			gb.free();
-                } 
+        } 
 	}
+    cout << "\n";
 }
 

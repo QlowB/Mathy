@@ -106,8 +106,7 @@ class FunctionNode :
 {
 	std::string functionName;
 	std::vector<ExpressionNode*> arguments;
-	Function* function;
-	FunctionNode(const std::string& name);
+	const Function* function;
 	
 	/*!
 	 * true if <code>function</code> needs to be deleted
@@ -115,11 +114,9 @@ class FunctionNode :
 	 */
 	bool deleteFunction;
 public:
-	FunctionNode(const std::string& name,
-		const std::vector<ExpressionNode*>& arguments);
 	
-	FunctionNode(Function* function);
-	FunctionNode(Function* function, const std::vector<ExpressionNode*>& arguments);
+	FunctionNode(const Function* function);
+	FunctionNode(const Function* function, const std::vector<ExpressionNode*>& arguments);
 	virtual ~FunctionNode(void);
 	
 	void addArgument(ExpressionNode* argument);
@@ -133,7 +130,7 @@ public:
 	/*!
 	 * calculates the derivative in the i-th parameter
 	 */
-	virtual ExpressionNode* getDerivative(size_t i) const;
+	virtual ExpressionNode* getDerivative(size_t i, GarbageBag& gb) const;
 	
 	virtual bool equals(const ExpressionNode*) const;
 };

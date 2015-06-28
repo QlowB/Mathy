@@ -71,7 +71,7 @@ FloatVal Sin::evaluate(FloatVal arg) const
 }
 
 
-ExpressionNode* Sin::getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const
+ExpressionNode* Sin::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
 	return new FunctionNode(&Functions::cos, args);
 }
@@ -89,7 +89,7 @@ FloatVal Cos::evaluate(FloatVal arg) const
 }
 
 
-ExpressionNode* Cos::getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const
+ExpressionNode* Cos::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
 	ExpressionNode* sine = new FunctionNode(&Functions::sin, args);
 	return new SubtractionNode(new IntegerNode(0), sine);
@@ -108,7 +108,7 @@ FloatVal Tan::evaluate(FloatVal arg) const
 }
 
 
-ExpressionNode* Tan::getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const
+ExpressionNode* Tan::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
 	ExpressionNode* cosine = new FunctionNode(&Functions::sin, args);
 	return new DivisionNode(new IntegerNode(1), new MultiplicationNode(cosine, cosine));
@@ -127,9 +127,9 @@ FloatVal Exp::evaluate(FloatVal arg) const
 }
 
 
-ExpressionNode* Exp::getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const
+ExpressionNode* Exp::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
-	return new FunctionNode(const_cast<Exp*> (this), args);
+	return new FunctionNode(this, args);
 }
 
 
@@ -139,7 +139,7 @@ Ln::Ln(void) :
 }
 
 
-ExpressionNode* Ln::getDerivative(size_t i, const std::vector<ExpressionNode*>& args) const
+ExpressionNode* Ln::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
 	return new DivisionNode(new IntegerNode(1), args[0]);
 }
@@ -148,6 +148,42 @@ ExpressionNode* Ln::getDerivative(size_t i, const std::vector<ExpressionNode*>& 
 FloatVal Ln::evaluate(FloatVal arg) const
 {
 	return ::log(arg);
+}
+
+
+Sinh::Sinh(void) :
+    NativeNumFunction("sinh", 1)
+{
+}
+
+
+ExpressionNode* Sinh::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+{
+	return new FunctionNode(&Functions::cosh, args);
+}
+
+
+FloatVal Sinh::evaluate(FloatVal arg) const
+{
+	return ::sinh(arg);
+}
+
+
+Cosh::Cosh(void) :
+    NativeNumFunction("cosh", 1)
+{
+}
+
+
+ExpressionNode* Cosh::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+{
+	return new FunctionNode(&Functions::sinh, args);
+}
+
+
+FloatVal Cosh::evaluate(FloatVal arg) const
+{
+	return ::cosh(arg);
 }
 
 
@@ -254,15 +290,20 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
 		gb.addReference(paranSum);
 		return gb.addReference(result)->evaluate(gb);
 	}
-	
+
 	FunctionNode* func = dynamic_cast<FunctionNode*>(value);
 	if (func != 0) {
+        // std::cout << "Function deriv\n";
 		AdditionNode* final = 0;
 		for (size_t i = 0; i < func->getArgumentCount(); i++) {
+            // std::cout << "chain rule!\n";
 			ExpressionNode* argDeriv = getDerivative(func->getArgument(i), variable, gb);
-			MultiplicationNode* summand = new MultiplicationNode(argDeriv, func->getDerivative(i));
+            // std::cout << "func der!\n";
+			MultiplicationNode* summand = new MultiplicationNode(argDeriv, func->getDerivative(i, gb));
 			
+            // std::cout << "did summand!\n";
 			if (func->getArgumentCount() == 1) {
+                // std::cout << "one arg!\n";
 				return gb.addReference(summand)->evaluate(gb);
 			}
 			else if (final == 0) {
@@ -279,6 +320,7 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
 		}
 		return final;
 	}
+    std::cout << "found no derivative\n";
 	return 0;
 }
 
@@ -307,7 +349,9 @@ void Functions::initialize(void)
 	add(&tan);
 	add(&exp);
 	add(&ln);
-	add(new DerivativeFunction("ableit"));
+    add(&sinh);
+    add(&cosh);
+	add(new DerivativeFunction("d"));
 	/*add("cos", 1, cos);
 	add("tan", 1, tan);
 	add("asin", 1, asin);
@@ -353,5 +397,6 @@ Cos Functions::cos;
 Tan Functions::tan;
 Exp Functions::exp;
 Ln Functions::ln;
-
+Sinh Functions::sinh;
+Cosh Functions::cosh;
 

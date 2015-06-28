@@ -1,5 +1,6 @@
 %{
     #include "Node.h"
+    #include "Natives.h"
     #include <stdlib.h>
     #include <stdio.h>
     ExpressionNode* expr; /* the top level root node of our syntax tree */
@@ -138,7 +139,10 @@ expressionList:
 
 function:
     TIDENTIFIER TLPAREN expressionList TRPAREN {
-        $$ = new FunctionNode(*$1, *$3);
+        Function* func = Functions::getNativeFunction(*$1, $3->size());
+        if (func == 0)
+            func = new Function(*$1, $3->size());
+        $$ = new FunctionNode(func, *$3);
         delete $1;
         delete $3;
         $1 = 0;
