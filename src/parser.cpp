@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 3.0.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.2"
+#define YYBISON_VERSION "3.0"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -67,23 +67,25 @@
     #include "Node.h"
     #include "Natives.h"
     #include <stdlib.h>
+    #include <exception>
     #include <stdio.h>
     ExpressionNode* expr; /* the top level root node of our syntax tree */
 
     extern int yylex();
     void yyerror(const char *s)
     {
-        printf("parse error: %s\n", s);
         while(yylex());
+        throw "parse error";
+        //printf("parse error: %s\n", s);
     }
 
-#line 81 "parser.cpp" /* yacc.c:339  */
+#line 83 "parser.cpp" /* yacc.c:339  */
 
-# ifndef YY_NULLPTR
+# ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
-#   define YY_NULLPTR nullptr
+#   define YY_NULL nullptr
 #  else
-#   define YY_NULLPTR 0
+#   define YY_NULL 0
 #  endif
 # endif
 
@@ -140,7 +142,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 17 "parser.y" /* yacc.c:355  */
+#line 19 "parser.y" /* yacc.c:355  */
 
     ExpressionNode* expressionNode;
     StatementNode* statementNode;
@@ -162,7 +164,7 @@ union YYSTYPE
     int token;
     std::string* string;
 
-#line 166 "parser.cpp" /* yacc.c:355  */
+#line 168 "parser.cpp" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -177,7 +179,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 181 "parser.cpp" /* yacc.c:358  */
+#line 183 "parser.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -234,30 +236,11 @@ typedef short int yytype_int16;
 # endif
 #endif
 
-#ifndef YY_ATTRIBUTE
-# if (defined __GNUC__                                               \
-      && (2 < __GNUC__ || (__GNUC__ == 2 && 96 <= __GNUC_MINOR__)))  \
-     || defined __SUNPRO_C && 0x5110 <= __SUNPRO_C
-#  define YY_ATTRIBUTE(Spec) __attribute__(Spec)
-# else
-#  define YY_ATTRIBUTE(Spec) /* empty */
-# endif
-#endif
-
-#ifndef YY_ATTRIBUTE_PURE
-# define YY_ATTRIBUTE_PURE   YY_ATTRIBUTE ((__pure__))
-#endif
-
-#ifndef YY_ATTRIBUTE_UNUSED
-# define YY_ATTRIBUTE_UNUSED YY_ATTRIBUTE ((__unused__))
-#endif
-
-#if !defined _Noreturn \
-     && (!defined __STDC_VERSION__ || __STDC_VERSION__ < 201112)
-# if defined _MSC_VER && 1200 <= _MSC_VER
-#  define _Noreturn __declspec (noreturn)
-# else
-#  define _Noreturn YY_ATTRIBUTE ((__noreturn__))
+#ifndef __attribute__
+/* This feature is available in gcc versions 2.5 and later.  */
+# if (! defined __GNUC__ || __GNUC__ < 2 \
+      || (__GNUC__ == 2 && __GNUC_MINOR__ < 5))
+#  define __attribute__(Spec) /* empty */
 # endif
 #endif
 
@@ -476,10 +459,10 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    78,    78,    82,    87,    91,    95,    99,   103,   107,
-     111,   116,   121,   126,   130,   135,   142,   149,   156,   161,
-     166,   178,   182,   186,   190,   194,   198,   203,   208,   213,
-     218,   223,   228,   233
+       0,    80,    80,    84,    89,    93,    97,   101,   105,   109,
+     113,   118,   123,   128,   132,   137,   144,   151,   158,   163,
+     168,   180,   184,   188,   192,   196,   200,   205,   210,   215,
+     220,   225,   230,   235
 };
 #endif
 
@@ -495,7 +478,7 @@ static const char *const yytname[] =
   "expression", "statement", "assignment", "constant", "variable",
   "integerConst", "realConst", "expressionList", "function", "operation",
   "addition", "subtraction", "multiplication", "modulo", "division",
-  "power", "parenthExpr", YY_NULLPTR
+  "power", "parenthExpr", YY_NULL
 };
 #endif
 
@@ -890,11 +873,11 @@ static int
 yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                 yytype_int16 *yyssp, int yytoken)
 {
-  YYSIZE_T yysize0 = yytnamerr (YY_NULLPTR, yytname[yytoken]);
+  YYSIZE_T yysize0 = yytnamerr (YY_NULL, yytname[yytoken]);
   YYSIZE_T yysize = yysize0;
   enum { YYERROR_VERBOSE_ARGS_MAXIMUM = 5 };
   /* Internationalized format string. */
-  const char *yyformat = YY_NULLPTR;
+  const char *yyformat = YY_NULL;
   /* Arguments of yyformat. */
   char const *yyarg[YYERROR_VERBOSE_ARGS_MAXIMUM];
   /* Number of reported tokens (one for the "unexpected", one per
@@ -951,7 +934,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
                   }
                 yyarg[yycount++] = yytname[yyx];
                 {
-                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULLPTR, yytname[yyx]);
+                  YYSIZE_T yysize1 = yysize + yytnamerr (YY_NULL, yytname[yyx]);
                   if (! (yysize <= yysize1
                          && yysize1 <= YYSTACK_ALLOC_MAXIMUM))
                     return 2;
@@ -1283,151 +1266,151 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 78 "parser.y" /* yacc.c:1646  */
+#line 80 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
         expr = (yyval.expressionNode);
     }
-#line 1292 "parser.cpp" /* yacc.c:1646  */
+#line 1275 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 4:
-#line 87 "parser.y" /* yacc.c:1646  */
+#line 89 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].constantNode);
     }
-#line 1300 "parser.cpp" /* yacc.c:1646  */
+#line 1283 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 5:
-#line 91 "parser.y" /* yacc.c:1646  */
+#line 93 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].functionNode);
     }
-#line 1308 "parser.cpp" /* yacc.c:1646  */
+#line 1291 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 6:
-#line 95 "parser.y" /* yacc.c:1646  */
+#line 97 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].operationNode);
     }
-#line 1316 "parser.cpp" /* yacc.c:1646  */
+#line 1299 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 7:
-#line 99 "parser.y" /* yacc.c:1646  */
+#line 101 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 1324 "parser.cpp" /* yacc.c:1646  */
+#line 1307 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 8:
-#line 103 "parser.y" /* yacc.c:1646  */
+#line 105 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].variableNode);
     }
-#line 1332 "parser.cpp" /* yacc.c:1646  */
+#line 1315 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 9:
-#line 107 "parser.y" /* yacc.c:1646  */
+#line 109 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = new SubtractionNode(new IntegerNode(0), (yyvsp[0].expressionNode));
     }
-#line 1340 "parser.cpp" /* yacc.c:1646  */
+#line 1323 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 10:
-#line 111 "parser.y" /* yacc.c:1646  */
+#line 113 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].statementNode);
     }
-#line 1348 "parser.cpp" /* yacc.c:1646  */
+#line 1331 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 11:
-#line 116 "parser.y" /* yacc.c:1646  */
+#line 118 "parser.y" /* yacc.c:1661  */
     {
         (yyval.statementNode) = (yyvsp[0].assignmentNode);
     }
-#line 1356 "parser.cpp" /* yacc.c:1646  */
+#line 1339 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 12:
-#line 121 "parser.y" /* yacc.c:1646  */
+#line 123 "parser.y" /* yacc.c:1661  */
     {
         (yyval.assignmentNode) = new AssignmentNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1364 "parser.cpp" /* yacc.c:1646  */
+#line 1347 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 13:
-#line 126 "parser.y" /* yacc.c:1646  */
+#line 128 "parser.y" /* yacc.c:1661  */
     {
         (yyval.constantNode) = (yyvsp[0].integerNode);
     }
-#line 1372 "parser.cpp" /* yacc.c:1646  */
+#line 1355 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 14:
-#line 130 "parser.y" /* yacc.c:1646  */
+#line 132 "parser.y" /* yacc.c:1661  */
     {
         (yyval.constantNode) = (yyvsp[0].realNode);
     }
-#line 1380 "parser.cpp" /* yacc.c:1646  */
+#line 1363 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 15:
-#line 135 "parser.y" /* yacc.c:1646  */
+#line 137 "parser.y" /* yacc.c:1661  */
     {
         (yyval.variableNode) = new VariableNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1390 "parser.cpp" /* yacc.c:1646  */
+#line 1373 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 16:
-#line 142 "parser.y" /* yacc.c:1646  */
+#line 144 "parser.y" /* yacc.c:1661  */
     {
         (yyval.integerNode) = new IntegerNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1400 "parser.cpp" /* yacc.c:1646  */
+#line 1383 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 17:
-#line 149 "parser.y" /* yacc.c:1646  */
+#line 151 "parser.y" /* yacc.c:1661  */
     {
         (yyval.realNode) = new RealNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1410 "parser.cpp" /* yacc.c:1646  */
+#line 1393 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 18:
-#line 156 "parser.y" /* yacc.c:1646  */
+#line 158 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionList) = new std::vector<ExpressionNode*>();
         (yyval.expressionList)->push_back((yyvsp[0].expressionNode));
     }
-#line 1419 "parser.cpp" /* yacc.c:1646  */
+#line 1402 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 19:
-#line 161 "parser.y" /* yacc.c:1646  */
+#line 163 "parser.y" /* yacc.c:1661  */
     {
         (yyvsp[-2].expressionList)->push_back((yyvsp[0].expressionNode));
     }
-#line 1427 "parser.cpp" /* yacc.c:1646  */
+#line 1410 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 20:
-#line 166 "parser.y" /* yacc.c:1646  */
+#line 168 "parser.y" /* yacc.c:1661  */
     {
         Function* func = Functions::getNativeFunction(*(yyvsp[-3].string), (yyvsp[-1].expressionList)->size());
         if (func == 0)
@@ -1438,115 +1421,115 @@ yyreduce:
         (yyvsp[-3].string) = 0;
         (yyvsp[-1].expressionList) = 0;
     }
-#line 1442 "parser.cpp" /* yacc.c:1646  */
+#line 1425 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 21:
-#line 178 "parser.y" /* yacc.c:1646  */
+#line 180 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1450 "parser.cpp" /* yacc.c:1646  */
+#line 1433 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 22:
-#line 182 "parser.y" /* yacc.c:1646  */
+#line 184 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1458 "parser.cpp" /* yacc.c:1646  */
+#line 1441 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 23:
-#line 186 "parser.y" /* yacc.c:1646  */
+#line 188 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1466 "parser.cpp" /* yacc.c:1646  */
+#line 1449 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 24:
-#line 190 "parser.y" /* yacc.c:1646  */
+#line 192 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1474 "parser.cpp" /* yacc.c:1646  */
+#line 1457 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 25:
-#line 194 "parser.y" /* yacc.c:1646  */
+#line 196 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1482 "parser.cpp" /* yacc.c:1646  */
+#line 1465 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 26:
-#line 198 "parser.y" /* yacc.c:1646  */
+#line 200 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1490 "parser.cpp" /* yacc.c:1646  */
+#line 1473 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 27:
-#line 203 "parser.y" /* yacc.c:1646  */
+#line 205 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new AdditionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1498 "parser.cpp" /* yacc.c:1646  */
+#line 1481 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 28:
-#line 208 "parser.y" /* yacc.c:1646  */
+#line 210 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new SubtractionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1506 "parser.cpp" /* yacc.c:1646  */
+#line 1489 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 29:
-#line 213 "parser.y" /* yacc.c:1646  */
+#line 215 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new MultiplicationNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1514 "parser.cpp" /* yacc.c:1646  */
+#line 1497 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 30:
-#line 218 "parser.y" /* yacc.c:1646  */
+#line 220 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new ModuloNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1522 "parser.cpp" /* yacc.c:1646  */
+#line 1505 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 31:
-#line 223 "parser.y" /* yacc.c:1646  */
+#line 225 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new DivisionNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1530 "parser.cpp" /* yacc.c:1646  */
+#line 1513 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 32:
-#line 228 "parser.y" /* yacc.c:1646  */
+#line 230 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new PowerNode((yyvsp[-2].expressionNode), (yyvsp[0].expressionNode));
     }
-#line 1538 "parser.cpp" /* yacc.c:1646  */
+#line 1521 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 33:
-#line 233 "parser.y" /* yacc.c:1646  */
+#line 235 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[-1].expressionNode);
     }
-#line 1546 "parser.cpp" /* yacc.c:1646  */
+#line 1529 "parser.cpp" /* yacc.c:1661  */
     break;
 
 
-#line 1550 "parser.cpp" /* yacc.c:1646  */
+#line 1533 "parser.cpp" /* yacc.c:1661  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1774,7 +1757,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 237 "parser.y" /* yacc.c:1906  */
+#line 239 "parser.y" /* yacc.c:1906  */
 
 
 

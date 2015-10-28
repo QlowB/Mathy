@@ -12,14 +12,14 @@ class GarbageBag;
 class Function
 {
 protected:
-	std::string name;
-	size_t argumentCount;
+    std::string name;
+    size_t argumentCount;
 public:
-	Function(const std::string& name, size_t argumentCount);
+    Function(const std::string& name, size_t argumentCount);
 
-	virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-	virtual const std::string& getName(void) const;
-	virtual size_t getArgumentCount(void) const;
+    virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    virtual const std::string& getName(void) const;
+    virtual size_t getArgumentCount(void) const;
 
     /*!
      * returns the derivative function (which may be an expression e.g.
@@ -33,7 +33,7 @@ public:
      * \param args the arguments to the function
      * \param gb a garbage bag collecting references which can be eliminated sometime
      */
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 #endif // FUNCTION_H_

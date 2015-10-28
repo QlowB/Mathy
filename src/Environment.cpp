@@ -1,9 +1,26 @@
 #include "Environment.h"
 
+const std::string& Symbol::getName(void) const
+{
+    return name;
+}
+
+
+Symbol::~Symbol(void)
+{
+}
+
+
 VariableSymbol::VariableSymbol(const std::string& name, ExpressionNode* value) :
     value(value)
 {
     this->name = name;
+}
+
+
+ExpressionNode* VariableSymbol::getValue(void)
+{
+    return value;
 }
 
 
@@ -27,8 +44,8 @@ Environment::Environment(void)
 ExpressionNode* Environment::evaluateExpression
 (ExpressionNode* expr, GarbageBag& gb)
 {
-    ExpressionNode* evaluated = expr->evaluate(gb);
-    if (dynamic_cast<StatementNode*> (evaluated) != 0) {
+    ExpressionNode* evaluated = expr->evaluate(this, gb);
+    /*if (dynamic_cast<StatementNode*> (evaluated) != 0) {
         AssignmentNode* an = dynamic_cast<AssignmentNode*> (evaluated);
         if (an != 0) {
             VariableNode* variable = dynamic_cast<VariableNode*> (an->a);
@@ -38,7 +55,7 @@ ExpressionNode* Environment::evaluateExpression
             } else
                 throw AssignmentException("left side of assignment must be a variable");
         }
-    }
+    }*/
     //evaluated = rewriter.replace(evaluated, gb);
     return evaluated;
 }
@@ -47,6 +64,17 @@ ExpressionNode* Environment::evaluateExpression
 void Environment::addSymbol(Symbol* s)
 {
     symbols.push_back(s);
+}
+
+
+VariableSymbol* Environment::getVariable(const std::string& name)
+{
+    for (size_t i = 0; i < symbols.size(); i++) {
+        if (dynamic_cast<VariableSymbol*> (symbols[i]) &&
+                dynamic_cast<VariableSymbol*> (symbols[i])->getName() == name) {
+            return dynamic_cast<VariableSymbol*> (symbols[i]);
+        }
+    }
 }
 
 

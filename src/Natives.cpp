@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include "Node.h"
+#include "Environment.h"
 
 std::map<std::string, ExpressionNode*> Constants::constants;
 bool Constants::initialized = false;
@@ -39,9 +40,9 @@ NativeNumFunction::NativeNumFunction(const std::string& name, size_t argumentCou
 }
 
 
-ExpressionNode* NativeNumFunction::eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+ExpressionNode* NativeNumFunction::eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
-    ExpressionNode* eval = args[0]->evaluate(gb);
+    ExpressionNode* eval = args[0]->evaluate(e, gb);
     RealNode* real = dynamic_cast<RealNode*>(eval);
     IntegerNode* intN = dynamic_cast<IntegerNode*>(eval);
     
@@ -50,10 +51,10 @@ ExpressionNode* NativeNumFunction::eval(const std::vector<ExpressionNode*>& args
         arg = real->getValue();
         return gb.addReference(new RealNode(evaluate(arg)));
     }
-    return evaluate(args, gb);
+    return evaluate(e, args, gb);
 }
 
-ExpressionNode* NativeNumFunction::evaluate(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+ExpressionNode* NativeNumFunction::evaluate(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
     return gb.addReference(new FunctionNode(const_cast<Function*> (dynamic_cast<const Function*> (this)), args));
 }
@@ -193,17 +194,16 @@ DerivativeFunction::DerivativeFunction(const std::string& name) :
 }
 
 
-ExpressionNode* DerivativeFunction::eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+ExpressionNode* DerivativeFunction::eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
-    ExpressionNode* eval = args[0]->evaluate(gb);
-    ExpressionNode* variable = args[1]->evaluate(gb);
+    ExpressionNode* eval = args[0]->evaluate(e, gb);
+    ExpressionNode* variable = args[1]->evaluate(e, gb);
     
-    return getDerivative(eval, variable, gb);
+    return getDerivative(e, eval, variable, gb);
 }
 
 
-
-ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const
+ExpressionNode* DerivativeFunction::getDerivative(Environment* e, ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const
 {
     RealNode* real = dynamic_cast<RealNode*>(value);
     if (real != 0) {
@@ -229,33 +229,33 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
     if (addsub == 0)
         addsub = dynamic_cast<SubtractionNode*>(value);
     if (addsub != 0) {
-        ExpressionNode* a = getDerivative(addsub->a, variable, gb);
-        ExpressionNode* b = getDerivative(addsub->b, variable, gb);
+        ExpressionNode* a = getDerivative(e, addsub->a, variable, gb);
+        ExpressionNode* b = getDerivative(e, addsub->b, variable, gb);
         
         OperationNode* result;
         if (dynamic_cast<AdditionNode*>(value) != 0)
             result = new AdditionNode(a, b);
         else
             result = new SubtractionNode(a, b);
-        return gb.addReference(result)->evaluate(gb);
+        return gb.addReference(result)->evaluate(e, gb);
     }
     
     MultiplicationNode* mul = dynamic_cast<MultiplicationNode*>(value);
     if (mul != 0) {
-        ExpressionNode* a = getDerivative(mul->a, variable, gb);
-        ExpressionNode* b = getDerivative(mul->b, variable, gb);
+        ExpressionNode* a = getDerivative(e, mul->a, variable, gb);
+        ExpressionNode* b = getDerivative(e, mul->b, variable, gb);
         
         MultiplicationNode* first = new MultiplicationNode(a, mul->b);
         MultiplicationNode* second = new MultiplicationNode(b, mul->a);
         
         AdditionNode* newNode = new AdditionNode(gb.addReference(first), gb.addReference(second));
-        return gb.addReference(newNode)->evaluate(gb);
+        return gb.addReference(newNode)->evaluate(e, gb);
     }
     
     DivisionNode* div = dynamic_cast<DivisionNode*>(value);
     if (div != 0) {
-        ExpressionNode* a = getDerivative(div->a, variable, gb);
-        ExpressionNode* b = getDerivative(div->b, variable, gb);
+        ExpressionNode* a = getDerivative(e, div->a, variable, gb);
+        ExpressionNode* b = getDerivative(e, div->b, variable, gb);
         
         MultiplicationNode* first = new MultiplicationNode(a, div->b);
         MultiplicationNode* second = new MultiplicationNode(b, div->a);
@@ -263,7 +263,7 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
         MultiplicationNode* bottomsq = new MultiplicationNode(div->b, div->b);
         SubtractionNode* newNode = new SubtractionNode(gb.addReference(first), gb.addReference(second));
         DivisionNode* final = new DivisionNode(gb.addReference(newNode), gb.addReference(bottomsq));
-        return gb.addReference(final)->evaluate(gb);
+        return gb.addReference(final)->evaluate(e, gb);
     }
     
     PowerNode* pow = dynamic_cast<PowerNode*>(value);
@@ -272,8 +272,8 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
         static NativeFunction* logfnc = Functions::getNativeFunction("ln", 1);
         
         // d/dx (f(x) ^ g(x)) = f(x)^g(x) * (g(x)*f'(x)/f(x) + log(f(x))g'(x))
-        ExpressionNode* a = getDerivative(pow->a, variable, gb);
-        ExpressionNode* b = getDerivative(pow->b, variable, gb);
+        ExpressionNode* a = getDerivative(e, pow->a, variable, gb);
+        ExpressionNode* b = getDerivative(e, pow->b, variable, gb);
         
         MultiplicationNode* bastr = new MultiplicationNode(pow->b, a);
         DivisionNode* bruch = new DivisionNode(bastr, pow->a);
@@ -288,7 +288,7 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
         gb.addReference(logFunc);
         gb.addReference(secondMul);
         gb.addReference(paranSum);
-        return gb.addReference(result)->evaluate(gb);
+        return gb.addReference(result)->evaluate(e, gb);
     }
 
     FunctionNode* func = dynamic_cast<FunctionNode*>(value);
@@ -297,14 +297,14 @@ ExpressionNode* DerivativeFunction::getDerivative(ExpressionNode* value, Express
         AdditionNode* final = 0;
         for (size_t i = 0; i < func->getArgumentCount(); i++) {
             // std::cout << "chain rule!\n";
-            ExpressionNode* argDeriv = getDerivative(func->getArgument(i), variable, gb);
+            ExpressionNode* argDeriv = getDerivative(e, func->getArgument(i), variable, gb);
             // std::cout << "func der!\n";
             MultiplicationNode* summand = new MultiplicationNode(argDeriv, func->getDerivative(i, gb));
             
             // std::cout << "did summand!\n";
             if (func->getArgumentCount() == 1) {
                 // std::cout << "one arg!\n";
-                return gb.addReference(summand)->evaluate(gb);
+                return gb.addReference(summand)->evaluate(e, gb);
             }
             else if (final == 0) {
                 final = new AdditionNode(gb.addReference(summand), 0);

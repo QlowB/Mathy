@@ -6,6 +6,7 @@
 #include "Function.h"
 
 class ExpressionNode;
+class Environment;
 
 class Constants
 {
@@ -23,7 +24,7 @@ class NativeFunction :
 {
 public:
 	NativeFunction(const std::string& name, size_t argumentCount);
-	virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const = 0;
+	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const = 0;
 };
 
 
@@ -35,10 +36,10 @@ class NativeNumFunction :
 {
 public:
 	NativeNumFunction(const std::string& name, size_t argumentCount);
-	virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 	
 	virtual FloatVal evaluate(FloatVal args) const = 0;
-	virtual ExpressionNode* evaluate(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+	virtual ExpressionNode* evaluate(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 };
 
 
@@ -118,27 +119,27 @@ class DerivativeFunction :
 {
 public:
 	DerivativeFunction(const std::string& name);
-	virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
 	
-	virtual ExpressionNode* getDerivative(ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const;
+	virtual ExpressionNode* getDerivative(Environment* e, ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const;
 };
 
 
 class Functions
 {
 private:
-	static std::map<std::pair<std::string, size_t>, NativeFunction*> functions;
-	static bool initialized;
-	static void initialize(void);
+    static std::map<std::pair<std::string, size_t>, NativeFunction*> functions;
+    static bool initialized;
+    static void initialize(void);
 public:
-	static void add(NativeFunction* value);
-	static NativeFunction* getNativeFunction(const std::string& name, int nArgs);
-	
-	static Sin sin;
-	static Cos cos;
-	static Tan tan;
-	static Exp exp;
-	static Ln ln;
+    static void add(NativeFunction* value);
+    static NativeFunction* getNativeFunction(const std::string& name, int nArgs);
+    
+    static Sin sin;
+    static Cos cos;
+    static Tan tan;
+    static Exp exp;
+    static Ln ln;
     static Sinh sinh;
     static Cosh cosh;
 

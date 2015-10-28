@@ -8,6 +8,7 @@
 #include "Natives.h"
 
 class ExpressionNode;
+class Environment;
 
 /*!
  * class collecting references and deleting them
@@ -27,7 +28,7 @@ public:
 	virtual ~ExpressionNode(void);
 	
 	virtual std::string getString(void) const = 0;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	virtual bool equals(const ExpressionNode*) const;
 };
 
@@ -59,7 +60,7 @@ public:
 	long long int getValue(void) const;
 	
 	virtual std::string getString(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	
 	virtual bool equals(const ExpressionNode*) const;
 };
@@ -76,7 +77,7 @@ public:
 	FloatVal getValue(void) const;
 	
 	virtual std::string getString(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	
 	virtual bool equals(const ExpressionNode*) const;
 };
@@ -96,7 +97,7 @@ public:
      * \return the name of this variable
      */
 	virtual std::string getString(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	
 	virtual bool equals(const ExpressionNode*) const;
 };
@@ -132,7 +133,7 @@ public:
 	void addArgument(ExpressionNode* argument);
 	
 	virtual std::string getString(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	
 	virtual size_t getArgumentCount(void) const;
 	virtual ExpressionNode* getArgument(size_t i) const;
@@ -174,7 +175,7 @@ public:
     AssignmentNode(ExpressionNode* a, ExpressionNode* b);
     virtual std::string getOperator(void) const;
     virtual std::string getString(void) const;
-    virtual ExpressionNode* evaluate(GarbageBag& gb);
+    virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -192,7 +193,7 @@ class AdditionNode :
 public:
 	AdditionNode(ExpressionNode* a, ExpressionNode* b);
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -204,7 +205,7 @@ public:
 	
 	virtual std::string getString(void) const;
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -224,7 +225,7 @@ public:
 	MultiplicationNode(ExpressionNode* a, ExpressionNode* b);
 	
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -235,7 +236,7 @@ public:
 	ModuloNode(ExpressionNode* a, ExpressionNode* b);
 	
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -246,7 +247,7 @@ public:
 	DivisionNode(ExpressionNode* a, ExpressionNode* b);
 	
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 };
 
 
@@ -257,7 +258,7 @@ public:
 	PowerNode(ExpressionNode* a, ExpressionNode* b);
 	
 	virtual std::string getOperator(void) const;
-	virtual ExpressionNode* evaluate(GarbageBag& gb);
+	virtual ExpressionNode* evaluate(Environment* e, GarbageBag& gb);
 	virtual std::string getString(void) const;
 };
 

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <sstream>
 
+#include "Environment.h"
 #include "Natives.h"
 
 ExpressionNode* GarbageBag::addReference(ExpressionNode* en)
@@ -27,7 +28,7 @@ ExpressionNode::~ExpressionNode(void)
 }
 
 
-ExpressionNode* ExpressionNode::evaluate(GarbageBag& gb)
+ExpressionNode* ExpressionNode::evaluate(Environment* e, GarbageBag& gb)
 {
     return this;
 }
@@ -71,7 +72,7 @@ std::string IntegerNode::getString(void) const
 }
 
 
-ExpressionNode* IntegerNode::evaluate(GarbageBag& gb)
+ExpressionNode* IntegerNode::evaluate(Environment* e, GarbageBag& gb)
 {
     return this;
 }
@@ -118,7 +119,7 @@ std::string RealNode::getString(void) const
 }
 
 
-ExpressionNode* RealNode::evaluate(GarbageBag& gb)
+ExpressionNode* RealNode::evaluate(Environment* e, GarbageBag& gb)
 {
     return this;
 }
@@ -152,10 +153,14 @@ std::string VariableNode::getString(void) const
 }
 
 
-ExpressionNode* VariableNode::evaluate(GarbageBag& gb)
+ExpressionNode* VariableNode::evaluate(Environment* e, GarbageBag& gb)
 {
+    VariableSymbol* vs = 0;
     if (constant != 0)
         return constant;
+    else if (vs = e->getVariable(name)) {
+        return vs->getValue();
+    }
     else
         return this;
 }
@@ -223,7 +228,7 @@ std::string FunctionNode::getString(void) const
 }
 
 
-ExpressionNode* FunctionNode::evaluate(GarbageBag& gb)
+ExpressionNode* FunctionNode::evaluate(Environment* e, GarbageBag& gb)
 {
     if (function != 0) {
         ExpressionNode* evaluated = function->eval(arguments, gb);
@@ -232,13 +237,13 @@ ExpressionNode* FunctionNode::evaluate(GarbageBag& gb)
     }
     
     
-    ExpressionNode* eval = arguments[0]->evaluate(gb);
+    ExpressionNode* eval = arguments[0]->evaluate(e, gb);
     RealNode* real = dynamic_cast<RealNode*>(eval);
     IntegerNode* intN = dynamic_cast<IntegerNode*>(eval);
    
     FunctionNode* fn = new FunctionNode(function, arguments);
     for (size_t i = 0; i < arguments.size(); i++) {
-        ExpressionNode* en = arguments[i]->evaluate(gb);
+        ExpressionNode* en = arguments[i]->evaluate(e, gb);
         fn->addArgument(en);
     }
     return gb.addReference(fn);
@@ -280,11 +285,11 @@ ExpressionNode* FunctionNode::getDerivative(size_t i, GarbageBag& gb) const
     std::stringstream ind;
     ind << i;
     ExpressionNode* func = function->getDerivative(i, arguments, gb);
-    
+
     if (func != 0) {
         return func;
     }
-   
+    return 0; 
     if (arguments.size() != 1) {
         // return new FunctionNode(functionName + "'(" +  ind.str() + ")", arguments);
     } else {
@@ -357,11 +362,17 @@ std::string AssignmentNode::getString(void) const
 }
 
 
-ExpressionNode* AssignmentNode::evaluate(GarbageBag& gb)
+ExpressionNode* AssignmentNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    return gb.addReference(new AssignmentNode(
-        a->evaluate(gb), b->evaluate(gb)
-    ));
+    AssignmentNode* node = new AssignmentNode(
+        a->evaluate(e, gb), b->evaluate(e, gb)
+    );
+    gb.addReference(node);
+    VariableNode* var = dynamic_cast<VariableNode*> (node->a);
+    if (var == 0) {
+        e->addSymbol(new VariableSymbol(var->getString(), node->b));
+    }
+    return node;
 }
 
 
@@ -377,10 +388,10 @@ std::string AdditionNode::getOperator(void) const
 }
 
 
-ExpressionNode* AdditionNode::evaluate(GarbageBag& gb)
+ExpressionNode* AdditionNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     
@@ -442,10 +453,10 @@ std::string SubtractionNode::getOperator(void) const
 }
 
 
-ExpressionNode* SubtractionNode::evaluate(GarbageBag& gb)
+ExpressionNode* SubtractionNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     
@@ -516,10 +527,10 @@ std::string MultiplicationNode::getOperator(void) const
 }
 
 
-ExpressionNode* MultiplicationNode::evaluate(GarbageBag& gb)
+ExpressionNode* MultiplicationNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     
@@ -577,10 +588,10 @@ std::string ModuloNode::getOperator(void) const
 }
 
 
-ExpressionNode* ModuloNode::evaluate(GarbageBag& gb)
+ExpressionNode* ModuloNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     
@@ -614,10 +625,10 @@ std::string DivisionNode::getOperator(void) const
 }
 
 
-ExpressionNode* DivisionNode::evaluate(GarbageBag& gb)
+ExpressionNode* DivisionNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     
@@ -686,10 +697,10 @@ std::string PowerNode::getString(void) const
 }
 
 
-ExpressionNode* PowerNode::evaluate(GarbageBag& gb)
+ExpressionNode* PowerNode::evaluate(Environment* e, GarbageBag& gb)
 {
-    ExpressionNode* left = a->evaluate(gb);
-    ExpressionNode* right = b->evaluate(gb);
+    ExpressionNode* left = a->evaluate(e, gb);
+    ExpressionNode* right = b->evaluate(e, gb);
     ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
     ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
     

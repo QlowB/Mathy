@@ -21,7 +21,13 @@ int ConsoleInterface::run(void)
     Environment environment;
 
     while (true) {
-        ::yyparse();
+        try {
+            ::yyparse();
+        } catch(const char* ex) {
+            cerr <<
+               "\x1B[31;1m" "error:" "\x1b[0m" " " << ex << "\n";
+            cerr.flush(); 
+        }
 
         if (end_of_file)
             break;
@@ -35,7 +41,8 @@ int ConsoleInterface::run(void)
                 delete ::expr;
                 ::expr = 0;
             } catch(exception& ex) {
-                cerr << "error: " << ex.what() << "\n";
+                cerr <<
+                   "\x1B[31;1m" "error:" "\x1b[0m" " " << ex.what() << "\n";
                 cerr.flush();
             }
             gb.free();
@@ -44,3 +51,4 @@ int ConsoleInterface::run(void)
     cout << "\n";
     return 0;
 }
+

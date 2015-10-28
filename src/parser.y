@@ -2,14 +2,16 @@
     #include "Node.h"
     #include "Natives.h"
     #include <stdlib.h>
+    #include <exception>
     #include <stdio.h>
     ExpressionNode* expr; /* the top level root node of our syntax tree */
 
     extern int yylex();
     void yyerror(const char *s)
     {
-        printf("parse error: %s\n", s);
         while(yylex());
+        throw "parse error";
+        //printf("parse error: %s\n", s);
     }
 %}
 

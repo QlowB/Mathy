@@ -1,5 +1,5 @@
 CXX         := clang++
-CXXFLAGS    := -O3
+CXXFLAGS    := -g
 YACC        := bison
 LEX         := flex
 

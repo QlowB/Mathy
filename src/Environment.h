@@ -10,6 +10,9 @@ class Symbol
 {
 protected:
     std::string name;
+public:
+    const std::string& getName(void) const;
+    virtual ~Symbol(void);
 };
 
 
@@ -19,6 +22,7 @@ protected:
     ExpressionNode* value;
 public:
     VariableSymbol(const std::string& name, ExpressionNode* value);
+    ExpressionNode* getValue(void);
 };
 
 
@@ -43,6 +47,7 @@ protected:
 
 class Environment
 {
+    // TODO implement this as a hash table
     std::vector<Symbol*> symbols;
 public:
 
@@ -51,6 +56,7 @@ public:
     ExpressionNode* evaluateExpression(ExpressionNode* expr, GarbageBag& gb);
 
     void addSymbol(Symbol* s);
+    VariableSymbol* getVariable(const std::string& name);
 };
 
 
