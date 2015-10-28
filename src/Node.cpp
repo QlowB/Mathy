@@ -158,7 +158,7 @@ ExpressionNode* VariableNode::evaluate(Environment* e, GarbageBag& gb)
     VariableSymbol* vs = 0;
     if (constant != 0)
         return constant;
-    else if (vs = e->getVariable(name)) {
+    else if ((vs = e->getVariable(name))) {
         return vs->getValue();
     }
     else
@@ -227,11 +227,11 @@ std::string FunctionNode::getString(void) const
     return ret;
 }
 
-
+#include <iostream>
 ExpressionNode* FunctionNode::evaluate(Environment* e, GarbageBag& gb)
 {
     if (function != 0) {
-        ExpressionNode* evaluated = function->eval(arguments, gb);
+        ExpressionNode* evaluated = function->eval(e, arguments, gb);
         if (evaluated != 0)
             return evaluated;
     }
@@ -369,8 +369,11 @@ ExpressionNode* AssignmentNode::evaluate(Environment* e, GarbageBag& gb)
     );
     gb.addReference(node);
     VariableNode* var = dynamic_cast<VariableNode*> (node->a);
-    if (var == 0) {
+    if (var != 0) {
         e->addSymbol(new VariableSymbol(var->getString(), node->b));
+    }
+    else {
+        throw ArithException("left side of assignment must be a variable");
     }
     return node;
 }

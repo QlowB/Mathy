@@ -75,6 +75,7 @@ VariableSymbol* Environment::getVariable(const std::string& name)
             return dynamic_cast<VariableSymbol*> (symbols[i]);
         }
     }
+    return 0;
 }
 
 

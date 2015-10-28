@@ -7,6 +7,7 @@
 typedef double FloatVal;
 
 class ExpressionNode;
+class Environment;
 class GarbageBag;
 
 class Function
@@ -17,7 +18,7 @@ protected:
 public:
     Function(const std::string& name, size_t argumentCount);
 
-    virtual ExpressionNode* eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
     virtual const std::string& getName(void) const;
     virtual size_t getArgumentCount(void) const;
 

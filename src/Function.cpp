@@ -9,7 +9,7 @@ Function::Function(const std::string& name, size_t argumentCount) :
 }
 
 #include <iostream>
-ExpressionNode* Function::eval(const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+ExpressionNode* Function::eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
 {
     // std::cout << "Function::eval\n";
     return gb.addReference(new FunctionNode(this, args));
