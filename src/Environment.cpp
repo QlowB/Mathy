@@ -11,14 +11,15 @@ Symbol::~Symbol(void)
 }
 
 
-VariableSymbol::VariableSymbol(const std::string& name, ExpressionNode* value) :
+VariableSymbol::VariableSymbol(const std::string& name,
+                               const std::shared_ptr<ExpressionNode>& value) :
     value(value)
 {
     this->name = name;
 }
 
 
-ExpressionNode* VariableSymbol::getValue(void)
+const std::shared_ptr<ExpressionNode>& VariableSymbol::getValue(void)
 {
     return value;
 }
@@ -41,23 +42,10 @@ Environment::Environment(void)
 }
 
 
-ExpressionNode* Environment::evaluateExpression
-(ExpressionNode* expr, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> Environment::evaluateExpression(
+        const std::shared_ptr<ExpressionNode>& expr)
 {
-    ExpressionNode* evaluated = expr->evaluate(this, gb);
-    /*if (dynamic_cast<StatementNode*> (evaluated) != 0) {
-        AssignmentNode* an = dynamic_cast<AssignmentNode*> (evaluated);
-        if (an != 0) {
-            VariableNode* variable = dynamic_cast<VariableNode*> (an->a);
-            if (variable != 0) {
-                VariableSymbol* vs = new VariableSymbol(variable->getString(), an->b);
-                addSymbol(vs);
-            } else
-                throw AssignmentException("left side of assignment must be a variable");
-        }
-    }*/
-    //evaluated = rewriter.replace(evaluated, gb);
-    return evaluated;
+    return expr->evaluate(this);
 }
 
 

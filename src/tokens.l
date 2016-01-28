@@ -2,8 +2,10 @@
 #include <string>
 #include "Node.h"
 #include "parser.h"
+
 #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
 #define TOKEN(t) (yylval.token = t)
+
 bool end_of_file = false;
 extern "C" int yywrap() { end_of_file = true; return 1; }
 extern void yyerror(const char *s);

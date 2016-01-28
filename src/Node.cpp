@@ -7,36 +7,21 @@
 #include "Environment.h"
 #include "Natives.h"
 
-ExpressionNode* GarbageBag::addReference(ExpressionNode* en)
-{
-    references.push_back(en);
-    return en;
-}
-
-
-void GarbageBag::free(void)
-{
-    for (size_t i = 0; i < references.size(); i++) {
-        delete references[i];
-    }
-    references.clear();
-}
-
 
 ExpressionNode::~ExpressionNode(void)
 {
 }
 
 
-ExpressionNode* ExpressionNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> ExpressionNode::evaluate(Environment*)
 {
-    return this;
+    return shared_from_this();
 }
 
 
-bool ExpressionNode::equals(const ExpressionNode* en) const
+bool ExpressionNode::equals(const ExpressionNode* other) const
 {
-    if (this == en)
+    if (this == other)
         return true;
     else
         return false;
@@ -72,18 +57,19 @@ std::string IntegerNode::getString(void) const
 }
 
 
-ExpressionNode* IntegerNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode>
+IntegerNode::evaluate(Environment*)
 {
-    return this;
+    return shared_from_this();
 }
 
 
-bool IntegerNode::equals(const ExpressionNode* en) const
+bool IntegerNode::equals(const ExpressionNode* other) const
 {
-    if (ExpressionNode::equals(en))
+    if (ExpressionNode::equals(other))
         return true;
     
-    const IntegerNode* type = dynamic_cast<const IntegerNode*> (en);
+    const IntegerNode* type = dynamic_cast<const IntegerNode*> (other);
     
     if (type != 0) {
         return type->value == this->value;
@@ -119,18 +105,18 @@ std::string RealNode::getString(void) const
 }
 
 
-ExpressionNode* RealNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> RealNode::evaluate(Environment*)
 {
-    return this;
+    return shared_from_this();
 }
 
 
-bool RealNode::equals(const ExpressionNode* en) const
+bool RealNode::equals(const ExpressionNode* other) const
 {
-    if (ExpressionNode::equals(en))
+    if (ExpressionNode::equals(other))
         return true;
     
-    const RealNode* type = dynamic_cast<const RealNode*> (en);
+    const RealNode* type = dynamic_cast<const RealNode*> (other);
     
     if (type != 0) {
         return type->value == this->value;
@@ -153,16 +139,16 @@ std::string VariableNode::getString(void) const
 }
 
 
-ExpressionNode* VariableNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> VariableNode::evaluate(Environment* e)
 {
     VariableSymbol* vs = 0;
-    if (constant != 0)
-        return constant;
-    else if ((vs = e->getVariable(name))) {
-        return vs->getValue();
+    if (!constant.expired())
+        return constant.lock();
+    else if ((vs = e->getVariable(name))) { // double parantheses because
+        return vs->getValue();              // compiler is a smartass otherwise
     }
     else
-        return this;
+        return shared_from_this();
 }
 
 
@@ -181,33 +167,31 @@ bool VariableNode::equals(const ExpressionNode* en) const
 }
 
 
-ParentNode::ParentNode(bool deleteArguments) :
-    deleteArguments(deleteArguments)
+ParentNode::ParentNode(void)
 {
 }
 
 
 FunctionNode::FunctionNode(const Function* function) :
-    functionName(function->getName()), ParentNode(false), function(function)
+    functionName(function->getName()), function(function)
 {
 }
 
 
-FunctionNode::FunctionNode(const Function* function, const std::vector<ExpressionNode*>& arguments) :
-    functionName(function->getName()), ParentNode(false), function(function), arguments(arguments)
+FunctionNode::FunctionNode(
+        const Function* function,
+        const std::vector<std::shared_ptr<ExpressionNode> >& arguments) :
+    functionName(function->getName()), function(function), arguments(arguments)
 {
 }
 
 
 FunctionNode::~FunctionNode(void)
 {
-    if (deleteArguments)
-        for (size_t i = 0; i < arguments.size(); i++)
-            delete arguments[i];
 }
 
 
-void FunctionNode::addArgument(ExpressionNode* argument)
+void FunctionNode::addArgument(const std::shared_ptr<ExpressionNode>& argument)
 {
     arguments.push_back(argument);
     function = Functions::getNativeFunction(functionName, arguments.size());
@@ -228,42 +212,28 @@ std::string FunctionNode::getString(void) const
 }
 
 #include <iostream>
-ExpressionNode* FunctionNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
 {
     if (function != 0) {
-        ExpressionNode* evaluated = function->eval(e, arguments, gb);
-        if (evaluated != 0)
-            return evaluated;
+        std::shared_ptr<ExpressionNode> ev = function->eval(e, arguments);
+        if (ev != 0)
+            return ev;
     }
     
     
-    ExpressionNode* eval = arguments[0]->evaluate(e, gb);
-    RealNode* real = dynamic_cast<RealNode*>(eval);
-    IntegerNode* intN = dynamic_cast<IntegerNode*>(eval);
+    //std::shared_ptr<ExpressionNode> eval = arguments[0]->evaluate(e);
+    //RealNode* real = dynamic_cast<RealNode*>(eval.get());
+    //IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
    
-    FunctionNode* fn = new FunctionNode(function, arguments);
+    std::shared_ptr<FunctionNode> fn =
+            std::make_shared<FunctionNode>(function, arguments);
+
     for (size_t i = 0; i < arguments.size(); i++) {
-        ExpressionNode* en = arguments[i]->evaluate(e, gb);
+        std::shared_ptr<ExpressionNode> en = arguments[i]->evaluate(e);
         fn->addArgument(en);
     }
-    return gb.addReference(fn);
-    /*
-    ExpressionNode* eval = arguments[0]->evaluate(gb);
-    RealNode* real = dynamic_cast<RealNode*>(eval);
-    IntegerNode* intN = dynamic_cast<IntegerNode*>(eval);
-    
-    if (function != 0 && (real != 0 || intN != 0)) {
-        FloatVal arg = 0;
-        if (real != 0) {
-            arg = real->getValue();
-        }
-        if (intN != 0) {
-            arg = intN->getValue();
-        }
-        std::vector<FloatVal> args;
-        args.push_back(arg);
-        return gb.addReference(new RealNode(function->eval(args)));
-    }*/
+
+    return fn;
 }
 
 
@@ -273,23 +243,24 @@ size_t FunctionNode::getArgumentCount(void) const
 }
 
 
-ExpressionNode* FunctionNode::getArgument(size_t i) const
+const std::shared_ptr<ExpressionNode>& FunctionNode::getArgument(size_t i) const
 {
     return arguments[i];
 }
 
 
 #include <iostream>
-ExpressionNode* FunctionNode::getDerivative(size_t i, GarbageBag& gb) const
+std::shared_ptr<ExpressionNode> FunctionNode::getDerivative(size_t i) const
 {
-    std::stringstream ind;
-    ind << i;
-    ExpressionNode* func = function->getDerivative(i, arguments, gb);
+    //std::stringstream ind;
+    //ind << i;
+    std::shared_ptr<ExpressionNode> func =
+            function->getDerivative(i, arguments);
 
     if (func != 0) {
         return func;
     }
-    return 0; 
+    return nullptr;
     if (arguments.size() != 1) {
         // return new FunctionNode(functionName + "'(" +  ind.str() + ")", arguments);
     } else {
@@ -313,7 +284,7 @@ bool FunctionNode::equals(const ExpressionNode* en) const
             return false;
         // assert: arguments.size() == type->arguments.size()
         for (size_t i = 0; i < arguments.size(); i++) {
-            if (!arguments[i]->equals(type->arguments[i]))
+            if (!arguments[i]->equals(type->arguments[i].get()))
                 return false;
         }
         return true;
@@ -323,18 +294,15 @@ bool FunctionNode::equals(const ExpressionNode* en) const
 }
 
 
-OperationNode::OperationNode(ExpressionNode* a, ExpressionNode* b) :
-    a(a), b(b), ParentNode(false)
+OperationNode::OperationNode(const std::shared_ptr<ExpressionNode>& a,
+                             const std::shared_ptr<ExpressionNode>& b) :
+    a(a), b(b)
 {
 }
 
 
 OperationNode::~OperationNode(void)
 {
-    if (deleteArguments) {
-        delete a;
-        delete b;
-    }
 }
 
 
@@ -344,7 +312,8 @@ std::string OperationNode::getString(void) const
 }
 
 
-AssignmentNode::AssignmentNode(ExpressionNode *a, ExpressionNode *b) :
+AssignmentNode::AssignmentNode(const std::shared_ptr<ExpressionNode>& a,
+                               const std::shared_ptr<ExpressionNode>& b) :
     OperationNode(a, b)
 {
 }
@@ -362,24 +331,26 @@ std::string AssignmentNode::getString(void) const
 }
 
 
-ExpressionNode* AssignmentNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> AssignmentNode::evaluate(Environment* e)
 {
-    AssignmentNode* node = new AssignmentNode(
-        a->evaluate(e, gb), b->evaluate(e, gb)
+    std::shared_ptr<AssignmentNode> node = std::make_shared<AssignmentNode>(
+        a->evaluate(e), b->evaluate(e)
     );
-    gb.addReference(node);
-    VariableNode* var = dynamic_cast<VariableNode*> (node->a);
-    if (var != 0) {
+
+    std::shared_ptr<VariableNode> var =
+            std::dynamic_pointer_cast<VariableNode> (node->a);
+    if (var) {
         e->addSymbol(new VariableSymbol(var->getString(), node->b));
     }
     else {
-        throw ArithException("left side of assignment must be a variable");
+        throw ArithmeticException("left side of assignment must be a variable");
     }
     return node;
 }
 
 
-AdditionNode::AdditionNode(ExpressionNode* a, ExpressionNode* b) :
+AdditionNode::AdditionNode(const std::shared_ptr<ExpressionNode>& a,
+                           const std::shared_ptr<ExpressionNode>& b) :
     PlusMinus(a, b)
 {
 }
@@ -391,12 +362,12 @@ std::string AdditionNode::getOperator(void) const
 }
 
 
-ExpressionNode* AdditionNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> AdditionNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -405,16 +376,20 @@ ExpressionNode* AdditionNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return gb.addReference(new IntegerNode(iLeft->getValue() + iRight->getValue()));
+            return std::make_shared<IntegerNode>
+                    (iLeft->getValue() + iRight->getValue());
         }
         if (iLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(iLeft->getValue() + rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (iLeft->getValue() + rRight->getValue());
         }
         if (rLeft != 0 && iRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() + iRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() + iRight->getValue());
         }
         if (rLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() + rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() + rRight->getValue());
         }
         return 0;
     } else {
@@ -427,14 +402,13 @@ ExpressionNode* AdditionNode::evaluate(Environment* e, GarbageBag& gb)
             return left;
         }*/
         
-        AdditionNode* an = new AdditionNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<AdditionNode>(left, right);
     }
 }
 
 
-SubtractionNode::SubtractionNode(ExpressionNode* a, ExpressionNode* b) :
+SubtractionNode::SubtractionNode(const std::shared_ptr<ExpressionNode>& a,
+                                 const std::shared_ptr<ExpressionNode>& b) :
     PlusMinus(a, b)
 {
 }
@@ -442,7 +416,7 @@ SubtractionNode::SubtractionNode(ExpressionNode* a, ExpressionNode* b) :
 
 std::string SubtractionNode::getString(void) const
 {
-    if (dynamic_cast<PlusMinus*> (b) != 0) {
+    if (dynamic_cast<PlusMinus*> (&*b) != 0) {
         return a->getString() + " " + getOperator() + " (" + b->getString() + ")";
     }
     else
@@ -456,12 +430,12 @@ std::string SubtractionNode::getOperator(void) const
 }
 
 
-ExpressionNode* SubtractionNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> SubtractionNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -470,16 +444,20 @@ ExpressionNode* SubtractionNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return gb.addReference(new IntegerNode(iLeft->getValue() - iRight->getValue()));
+            return std::make_shared<IntegerNode>
+                    (iLeft->getValue() - iRight->getValue());
         }
         if (iLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(iLeft->getValue() - rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (iLeft->getValue() - rRight->getValue());
         }
         if (rLeft != 0 && iRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() - iRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() - iRight->getValue());
         }
         if (rLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() - rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() - rRight->getValue());
         }
         
         return 0;
@@ -489,17 +467,15 @@ ExpressionNode* SubtractionNode::evaluate(Environment* e, GarbageBag& gb)
         if (iRight != 0 && iRight->getValue() == 0) {
             return left;
         }
-        SubtractionNode* an = new SubtractionNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<SubtractionNode> (left, right);
     }
 }
 
 
 std::string MultDivMod::getString(void) const
 {
-    bool addA = dynamic_cast<PlusMinus*> (a);
-    bool addB = dynamic_cast<PlusMinus*> (b);
+    bool addA = dynamic_cast<PlusMinus*> (&*a);
+    bool addB = dynamic_cast<PlusMinus*> (&*b);
     
     std::string left;
     std::string right;
@@ -518,7 +494,9 @@ std::string MultDivMod::getString(void) const
 }
 
 
-MultiplicationNode::MultiplicationNode(ExpressionNode* a, ExpressionNode* b) :
+MultiplicationNode::MultiplicationNode(
+        const std::shared_ptr<ExpressionNode>& a,
+        const std::shared_ptr<ExpressionNode>& b) :
     MultDivMod(a, b)
 {
 }
@@ -530,12 +508,12 @@ std::string MultiplicationNode::getOperator(void) const
 }
 
 
-ExpressionNode* MultiplicationNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> MultiplicationNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -544,16 +522,20 @@ ExpressionNode* MultiplicationNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return gb.addReference(new IntegerNode(iLeft->getValue() * iRight->getValue()));
+            return std::make_shared<IntegerNode>
+                    (iLeft->getValue() * iRight->getValue());
         }
         if (iLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(iLeft->getValue() * rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (iLeft->getValue() * rRight->getValue());
         }
         if (rLeft != 0 && iRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() * iRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() * iRight->getValue());
         }
         if (rLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() * rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() * rRight->getValue());
         }
         
         return 0;
@@ -564,22 +546,21 @@ ExpressionNode* MultiplicationNode::evaluate(Environment* e, GarbageBag& gb)
             return right;
         }
         if (iLeft != 0 && iLeft->getValue() == 0) {
-            return gb.addReference(new IntegerNode(0));
+            return std::make_shared<IntegerNode>(0);
         }
         if (iRight != 0 && iRight->getValue() == 1) {
             return left;
         }
         if (iRight != 0 && iRight->getValue() == 0) {
-            return gb.addReference(new IntegerNode(0));
+            return std::make_shared<IntegerNode>(0);
         }
-        MultiplicationNode* an = new MultiplicationNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<MultiplicationNode>(left, right);
     }
 }
 
 
-ModuloNode::ModuloNode(ExpressionNode* a, ExpressionNode* b) :
+ModuloNode::ModuloNode(const std::shared_ptr<ExpressionNode>& a,
+                       const std::shared_ptr<ExpressionNode>& b) :
     MultDivMod(a, b)
 {
 }
@@ -591,12 +572,12 @@ std::string ModuloNode::getOperator(void) const
 }
 
 
-ExpressionNode* ModuloNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> ModuloNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -605,18 +586,18 @@ ExpressionNode* ModuloNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return gb.addReference(new IntegerNode(iLeft->getValue() % iRight->getValue()));
+            return std::make_shared<IntegerNode>
+                    (iLeft->getValue() % iRight->getValue());
         }
-        throw ArithException("modulo operator only defined for integer operands!");
+        throw ArithmeticException("modulo operator only defined for integer operands!");
     } else {
-        ModuloNode* an = new ModuloNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<ModuloNode>(left, right);
     }
 }
 
 
-DivisionNode::DivisionNode(ExpressionNode* a, ExpressionNode* b) :
+DivisionNode::DivisionNode(const std::shared_ptr<ExpressionNode>& a,
+                           const std::shared_ptr<ExpressionNode>& b) :
     MultDivMod(a, b)
 {
 }
@@ -628,12 +609,12 @@ std::string DivisionNode::getOperator(void) const
 }
 
 
-ExpressionNode* DivisionNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> DivisionNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -642,28 +623,30 @@ ExpressionNode* DivisionNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return this;
+            return shared_from_this();
         }
         if (iLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(iLeft->getValue() / rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (iLeft->getValue() / rRight->getValue());
         }
         if (rLeft != 0 && iRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() / iRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() / iRight->getValue());
         }
         if (rLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(rLeft->getValue() / rRight->getValue()));
+            return std::make_shared<RealNode>
+                    (rLeft->getValue() / rRight->getValue());
         }
         
         return 0;
     } else {
-        DivisionNode* an = new DivisionNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<DivisionNode>(left, right);
     }
 }
 
 
-PowerNode::PowerNode(ExpressionNode* a, ExpressionNode* b) :
+PowerNode::PowerNode(const std::shared_ptr<ExpressionNode>& a,
+                     const std::shared_ptr<ExpressionNode>& b) :
     OperationNode(a, b)
 {
 }
@@ -677,11 +660,11 @@ std::string PowerNode::getOperator(void) const
 
 std::string PowerNode::getString(void) const
 {
-    bool addA = dynamic_cast<PlusMinus*> (a);
-    bool addB = dynamic_cast<PlusMinus*> (b);
+    bool addA = dynamic_cast<PlusMinus*> (&*a);
+    bool addB = dynamic_cast<PlusMinus*> (&*b);
     
-    addA |= dynamic_cast<MultDivMod*> (a) != 0;
-    addB |= dynamic_cast<MultDivMod*> (b) != 0;
+    addA |= dynamic_cast<MultDivMod*> (&*a) != 0;
+    addB |= dynamic_cast<MultDivMod*> (&*b) != 0;
     
     std::string left;
     std::string right;
@@ -700,12 +683,12 @@ std::string PowerNode::getString(void) const
 }
 
 
-ExpressionNode* PowerNode::evaluate(Environment* e, GarbageBag& gb)
+std::shared_ptr<ExpressionNode> PowerNode::evaluate(Environment* e)
 {
-    ExpressionNode* left = a->evaluate(e, gb);
-    ExpressionNode* right = b->evaluate(e, gb);
-    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(left);
-    ConstantNode* cRight = dynamic_cast<ConstantNode*>(right);
+    std::shared_ptr<ExpressionNode> left = a->evaluate(e);
+    std::shared_ptr<ExpressionNode> right = b->evaluate(e);
+    ConstantNode* cLeft = dynamic_cast<ConstantNode*>(&*left);
+    ConstantNode* cRight = dynamic_cast<ConstantNode*>(&*right);
     
     if (cLeft != 0 && cRight != 0) {
         IntegerNode* iLeft = dynamic_cast<IntegerNode*>(cLeft);
@@ -714,16 +697,20 @@ ExpressionNode* PowerNode::evaluate(Environment* e, GarbageBag& gb)
         RealNode* rRight = dynamic_cast<RealNode*>(cRight);
         
         if (iLeft != 0 && iRight != 0) {
-            return gb.addReference(new IntegerNode(::pow(iLeft->getValue(), iRight->getValue())));
+            return std::make_shared<IntegerNode>
+                    (::pow(iLeft->getValue(), iRight->getValue()));
         }
         if (iLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(::pow(iLeft->getValue(), rRight->getValue())));
+            return std::make_shared<RealNode>
+                    (::pow(iLeft->getValue(), rRight->getValue()));
         }
         if (rLeft != 0 && iRight != 0) {
-            return gb.addReference(new RealNode(::pow(rLeft->getValue(), iRight->getValue())));
+            return std::make_shared<RealNode>
+                    (::pow(rLeft->getValue(), iRight->getValue()));
         }
         if (rLeft != 0 && rRight != 0) {
-            return gb.addReference(new RealNode(::pow(rLeft->getValue(), rRight->getValue())));
+            return std::make_shared<RealNode>
+                    (::pow(rLeft->getValue(), rRight->getValue()));
         }
         
         return 0;
@@ -732,30 +719,28 @@ ExpressionNode* PowerNode::evaluate(Environment* e, GarbageBag& gb)
         IntegerNode* iRight = dynamic_cast<IntegerNode*>(cRight);
         
         if (iLeft != 0 && iLeft->getValue() == 1) {
-            return gb.addReference(new IntegerNode(1));
+            return std::make_shared<IntegerNode>(1);
         }
         if (iRight != 0 && iRight->getValue() == 1) {
             return left;
         }
-        PowerNode* an = new PowerNode(left, right);
-        an->deleteArguments = false;
-        return gb.addReference(an);
+        return std::make_shared<PowerNode>(left, right);
     }
 }
 
 
-ArithException::ArithException(const std::string& whatStr) :
+ArithmeticException::ArithmeticException(const std::string& whatStr) :
     whatStr(whatStr)
 {
 }
 
 
-ArithException::~ArithException(void) throw()
+ArithmeticException::~ArithmeticException(void) throw()
 {
 }
 
 
-const char* ArithException::what(void) const throw()
+const char* ArithmeticException::what(void) const throw()
 {
     return whatStr.c_str();
 }

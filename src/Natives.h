@@ -1,6 +1,7 @@
 #ifndef NATIVES_H_
 #define NATIVES_H_
 #include <utility>
+#include <memory>
 #include <map>
 
 #include "Function.h"
@@ -10,12 +11,14 @@ class Environment;
 
 class Constants
 {
-	static std::map<std::string, ExpressionNode*> constants;
+    static std::map<std::string, std::shared_ptr<ExpressionNode> > constants;
 	static bool initialized;
 	static void initialize(void);
 public:
-	static void add(const std::string& name, ExpressionNode* value);
-	static ExpressionNode* getConstant(const std::string& name);
+    static void add(const std::string& name,
+                    const std::shared_ptr<ExpressionNode>& value);
+    static const std::shared_ptr<ExpressionNode>& getConstant(
+            const std::string& name);
 };
 
 
@@ -23,94 +26,54 @@ class NativeFunction :
 	public Function
 {
 public:
-	NativeFunction(const std::string& name, size_t argumentCount);
-	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const = 0;
+    NativeFunction(const std::string& name, size_t argumentCount);
+    virtual std::shared_ptr<ExpressionNode> eval(
+        Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& args) const = 0;
 };
 
 
-/*!
- * base class for sin, cos etc.
- */
 class NativeNumFunction :
 	public NativeFunction
 {
 public:
-	NativeNumFunction(const std::string& name, size_t argumentCount);
-	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    typedef double (*MathFunc)(double);
+private:
+
+    MathFunc function;
+    NativeNumFunction* derivative;
+public:
+    NativeNumFunction(const std::string& name,
+                      MathFunc function,
+                      NativeNumFunction* derivative);
+
+    virtual const std::string& getName(void) const;
+
+    virtual std::shared_ptr<ExpressionNode> eval(
+            Environment* e,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
 	
-	virtual FloatVal evaluate(FloatVal args) const = 0;
-	virtual ExpressionNode* evaluate(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    FloatVal evaluate(FloatVal args) const;
+
+    virtual std::shared_ptr<ExpressionNode> evaluate(
+            Environment* e,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
+
+    virtual std::shared_ptr<ExpressionNode> getDerivative(
+            size_t i,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
 };
 
 
-class Sin :
-	public NativeNumFunction
+class Log :
+    public NativeNumFunction
 {
 public:
-	Sin(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Cos :
-	public NativeNumFunction
-{
-public:
-	Cos(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Tan :
-	public NativeNumFunction
-{
-public:
-	Tan(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Exp :
-	public NativeNumFunction
-{
-public:
-	Exp(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Ln :
-	public NativeNumFunction
-{
-public:
-	Ln(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Sinh :
-	public NativeNumFunction
-{
-public:
-	Sinh(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
-};
-
-
-class Cosh :
-	public NativeNumFunction
-{
-public:
-	Cosh(void);
-	virtual FloatVal evaluate(FloatVal args) const;
-	virtual ExpressionNode* getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    Log(void);
+    virtual const std::string& getName(void) const;
+    virtual std::shared_ptr<ExpressionNode> getDerivative(
+            size_t i,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
 };
 
 
@@ -119,9 +82,13 @@ class DerivativeFunction :
 {
 public:
 	DerivativeFunction(const std::string& name);
-	virtual ExpressionNode* eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const;
+    virtual std::shared_ptr<ExpressionNode> eval(
+            Environment* e,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
 	
-	virtual ExpressionNode* getDerivative(Environment* e, ExpressionNode* value, ExpressionNode* variable, GarbageBag& gb) const;
+    virtual std::shared_ptr<ExpressionNode> getDerivative(
+            Environment* e,std::shared_ptr<ExpressionNode> value,
+            std::shared_ptr<ExpressionNode> variable) const;
 };
 
 
@@ -134,14 +101,17 @@ private:
 public:
     static void add(NativeFunction* value);
     static NativeFunction* getNativeFunction(const std::string& name, int nArgs);
-    
-    static Sin sin;
-    static Cos cos;
-    static Tan tan;
-    static Exp exp;
-    static Ln ln;
-    static Sinh sinh;
-    static Cosh cosh;
+
+    static NativeNumFunction sin;
+    static NativeNumFunction cos;
+    static NativeNumFunction tan;
+    static NativeNumFunction asin;
+    static NativeNumFunction acos;
+    static NativeNumFunction atan;
+    static NativeNumFunction exp;
+    static Log ln;
+    static NativeNumFunction sinh;
+    static NativeNumFunction cosh;
 
 private:
 };

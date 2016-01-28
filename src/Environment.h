@@ -3,6 +3,7 @@
 
 #include "Node.h"
 #include <vector>
+#include <memory>
 #include <exception>
 
 
@@ -19,10 +20,11 @@ public:
 class VariableSymbol : public Symbol
 {
 protected:
-    ExpressionNode* value;
+    std::shared_ptr<ExpressionNode> value;
 public:
-    VariableSymbol(const std::string& name, ExpressionNode* value);
-    ExpressionNode* getValue(void);
+    VariableSymbol(const std::string& name,
+                   const std::shared_ptr<ExpressionNode>& value);
+    const std::shared_ptr<ExpressionNode>& getValue(void);
 };
 
 
@@ -53,7 +55,8 @@ public:
 
     Environment(void);
 
-    ExpressionNode* evaluateExpression(ExpressionNode* expr, GarbageBag& gb);
+    std::shared_ptr<ExpressionNode> evaluateExpression(
+            const std::shared_ptr<ExpressionNode>& expr);
 
     void addSymbol(Symbol* s);
     VariableSymbol* getVariable(const std::string& name);

@@ -1,5 +1,5 @@
 CXX         := clang++
-CXXFLAGS    := -g #-O3 -fomit-frame-pointer -flto
+CXXFLAGS    := -Wno-deprecated-register -std=c++11 -g #-O3 -fomit-frame-pointer -flto
 LNFLAGS     := #-flto
 YACC        := bison
 LEX         := flex
@@ -20,5 +20,8 @@ parser.cpp: parser.y
 
 tokens.cpp: tokens.l
 	$(LEX) -o $@ $<
+
+clear:
+	rm *.o parser.h parser.cpp tokens.cpp
 
 

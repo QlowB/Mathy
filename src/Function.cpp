@@ -1,18 +1,23 @@
 #include "Natives.h"
 #include "Node.h"
 #include <sstream>
-
+#include <iostream>
+#include <typeinfo>
 
 Function::Function(const std::string& name, size_t argumentCount) :
 	name(name), argumentCount(argumentCount)
 {
+    std::cout << getName() << std::endl;
+    //std::cout << typeid(this).name() << std::endl;
 }
 
 #include <iostream>
-ExpressionNode* Function::eval(Environment* e, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+std::shared_ptr<ExpressionNode> Function::eval(
+        Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& args) const
 {
     // std::cout << "Function::eval\n";
-    return gb.addReference(new FunctionNode(this, args));
+    return std::make_shared<FunctionNode> (this, args);
     //return this;
 }
 
@@ -29,7 +34,9 @@ size_t Function::getArgumentCount(void) const
 }
 
 
-ExpressionNode* Function::getDerivative(size_t i, const std::vector<ExpressionNode*>& args, GarbageBag& gb) const
+std::shared_ptr<ExpressionNode> Function::getDerivative(
+        size_t i,
+        const std::vector<std::shared_ptr<ExpressionNode> >& args) const
 {
 	Function* derivFunc;
 
@@ -40,5 +47,5 @@ ExpressionNode* Function::getDerivative(size_t i, const std::vector<ExpressionNo
         ind << i;
         derivFunc = new Function(name + "'(" + ind.str() + ")", argumentCount);
     }
-    return gb.addReference(new FunctionNode(derivFunc, args));
+    return std::make_shared<FunctionNode>(derivFunc, args);
 }

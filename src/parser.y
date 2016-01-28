@@ -1,24 +1,29 @@
 %{
     #include "Node.h"
     #include "Natives.h"
-    #include <stdlib.h>
+    #include <cstdlib>
     #include <exception>
-    #include <stdio.h>
-    ExpressionNode* expr; /* the top level root node of our syntax tree */
+    #include <memory>
+    #include <cstdio>
+
+    /*! \brief root node of the AST */
+    std::shared_ptr<ExpressionNode> expr;
 
     extern int yylex();
     void yyerror(const char *s)
     {
         while(yylex());
         throw "parse error";
-        //printf("parse error: %s\n", s);
     }
+
+    template <typename T>
+    using sp = std::shared_ptr<T>;
 %}
 
 /* %name-prefix "p" */
 /* %define api.prefix p */
 
-/* define data structure for parser use */
+/* data structure for parser */
 %union {
     ExpressionNode* expressionNode;
     StatementNode* statementNode;
@@ -35,16 +40,15 @@
 
     AssignmentNode* assignmentNode;
     
-    std::vector<ExpressionNode*>* expressionList;
+    std::vector<std::shared_ptr<ExpressionNode> >* expressionList;
     
     int token;
     std::string* string;
 }
 
+
 /*
  * terminals
- *
- * These constants should match the ones defined in tokens.l
  */
 %token <string> TOKEN_IDENTIFIER TOKEN_INTEGER TOKEN_REAL
 
@@ -70,7 +74,7 @@
 %type <assignmentNode> assignment
 %type <statementNode> statement
 
-/* Operator precedence for mathematical operators */
+/* operator precedence */
 %nonassoc TOKEN_ASSIGNMENT
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
@@ -83,7 +87,7 @@
 oneExpression:
     expression {
         $<expressionNode>$ = $1;
-        expr = $<expressionNode>$;
+        expr = std::shared_ptr<ExpressionNode>($<expressionNode>$);
     }
     |
     /* empty */
@@ -111,7 +115,10 @@ expression:
     }
     |
     TOKEN_MINUS expression {
-        $$ = new SubtractionNode(new IntegerNode(0), $2);
+        $$ = new SubtractionNode(
+            std::make_shared<IntegerNode>(0),
+            std::shared_ptr<ExpressionNode>($2)
+        );
     }
     |
     statement {
@@ -125,7 +132,10 @@ statement:
 
 assignment:
     expression TOKEN_ASSIGNMENT expression {
-        $$ = new AssignmentNode($1, $3);
+        $$ = new AssignmentNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 constant:
@@ -160,12 +170,12 @@ realConst:
 
 expressionList:
     expression {
-        $$ = new std::vector<ExpressionNode*>();
-        $$->push_back($1);
+        $$ = new std::vector<std::shared_ptr<ExpressionNode> >();
+        $$->push_back(std::shared_ptr<ExpressionNode>($1));
     }
     |
     expressionList TOKEN_COMMA expression {
-        $1->push_back($3);
+        $1->push_back(std::shared_ptr<ExpressionNode>($3));
     };
 
 function:
@@ -207,32 +217,50 @@ operation:
 
 addition:
     expression TOKEN_PLUS expression {
-        $$ = new AdditionNode($1, $3);
+        $$ = new AdditionNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 subtraction:
     expression TOKEN_MINUS expression {
-        $$ = new SubtractionNode($1, $3);
+        $$ = new SubtractionNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 multiplication:
     expression TOKEN_MUL expression {
-        $$ = new MultiplicationNode($1, $3);
+        $$ = new MultiplicationNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 modulo:
     expression TOKEN_MOD expression {
-        $$ = new ModuloNode($1, $3);
+        $$ = new ModuloNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 division:
     expression TOKEN_DIV expression {
-        $$ = new DivisionNode($1, $3);
+        $$ = new DivisionNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 power:
     expression TOKEN_POW expression {
-        $$ = new PowerNode($1, $3);
+        $$ = new PowerNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
     };
 
 parenthExpr:

@@ -73,7 +73,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 22 "parser.y" /* yacc.c:1909  */
+#line 27 "parser.y" /* yacc.c:1909  */
 
     ExpressionNode* expressionNode;
     StatementNode* statementNode;
@@ -90,7 +90,7 @@ union YYSTYPE
 
     AssignmentNode* assignmentNode;
     
-    std::vector<ExpressionNode*>* expressionList;
+    std::vector<std::shared_ptr<ExpressionNode> >* expressionList;
     
     int token;
     std::string* string;

@@ -20,7 +20,7 @@ public:
     
     bool isDefined(void) const;
     
-    virtual bool matches(ExpressionNode* expression);
+    virtual bool matches(const std::shared_ptr<ExpressionNode>& expression);
 };
 
 
@@ -30,7 +30,7 @@ protected:
     long long value;
 public:
     IntegerTemplate(bool defined, long long value);
-    virtual bool matches(ExpressionNode* expression);
+    virtual bool matches(const std::shared_ptr<ExpressionNode>& expression);
 };
 
 
@@ -40,7 +40,7 @@ protected:
     std::string name;
 public:
     VariableTemplate(bool defined, const std::string& name);
-    virtual bool matches(ExpressionNode* expression);
+    virtual bool matches(const std::shared_ptr<ExpressionNode>& expression);
 };
 
 
@@ -61,7 +61,7 @@ class AdditionTemplate : public OperationTemplate
 protected:
 public:
 	AdditionTemplate(bool defined, AnyValue* left, AnyValue* right);
-	virtual bool matches(ExpressionNode* expression);
+    virtual bool matches(const std::shared_ptr<ExpressionNode>& expression);
 };
 
 
@@ -78,13 +78,15 @@ class ReplaceIdentifier : public AnyValue
 class RewriteRule
 {
 	AnyValue* find;
-	ExpressionNode* replace;
+    const std::shared_ptr<ExpressionNode> replace;
 	
 	static std::vector<RewriteRule*> rules;
 public:
-	RewriteRule(AnyValue* find, ExpressionNode* replace);
+    RewriteRule(AnyValue* find,
+                const std::shared_ptr<ExpressionNode>& replace);
 	
-	ExpressionNode* getReplace(ExpressionNode* node, GarbageBag& gb);
+    std::shared_ptr<ExpressionNode> getReplace(
+            const std::shared_ptr<ExpressionNode>& node);
 	
 	static void initializeRules(void);
 	//static const std::vector<RewriteRule*> getRules(void);
@@ -97,7 +99,8 @@ class Rewriter
 public:
 	Rewriter(void);
 	
-	ExpressionNode* replace(ExpressionNode* node, GarbageBag& gb);
+    std::shared_ptr<ExpressionNode> replace(
+            const std::shared_ptr<ExpressionNode>& node);
 };
 
 #endif // REWRITER_H_
