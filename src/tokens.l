@@ -14,30 +14,30 @@ extern void yyerror(const char *s);
 [ \t]                   ;
 [ ][_][\n]              ; /* line break */
 \n                      yyterminate();
-[0-9]+\.[0-9]*          SAVE_TOKEN; return TREAL;
-[0-9]+                  SAVE_TOKEN; return TINTEGER;
+[0-9]+\.[0-9]*          SAVE_TOKEN; return TOKEN_REAL;
+[0-9]+                  SAVE_TOKEN; return TOKEN_INTEGER;
 
-"+"                     return TOKEN(TPLUS);
-"-"                     return TOKEN(TMINUS);
-"*"                     return TOKEN(TMUL);
-"/"                     return TOKEN(TDIV);
-"^"                     return TOKEN(TPOW);
-"mod"                   return TOKEN(TMOD);
-"%"                     return TOKEN(TMOD);
-":="                    return TOKEN(TASSIGNMENT);
+"+"                     return TOKEN(TOKEN_PLUS);
+"-"                     return TOKEN(TOKEN_MINUS);
+"*"                     return TOKEN(TOKEN_MUL);
+"/"                     return TOKEN(TOKEN_DIV);
+"^"                     return TOKEN(TOKEN_POW);
+"mod"                   return TOKEN(TOKEN_MOD);
+"%"                     return TOKEN(TOKEN_MOD);
+":="                    return TOKEN(TOKEN_ASSIGNMENT);
 
-"("                     return TOKEN(TLPAREN);
-")"                     return TOKEN(TRPAREN);
-"{"                     return TOKEN(TLBRACE);
-"}"                     return TOKEN(TRBRACE);
-"."                     return TOKEN(TDOT);
-","                     return TOKEN(TCOMMA);
-":"                     return TOKEN(TCOLON);
+"("                     return TOKEN(TOKEN_LPAREN);
+")"                     return TOKEN(TOKEN_RPAREN);
+"{"                     return TOKEN(TOKEN_LBRACE);
+"}"                     return TOKEN(TOKEN_RBRACE);
+"."                     return TOKEN(TOKEN_DOT);
+","                     return TOKEN(TOKEN_COMMA);
+":"                     return TOKEN(TOKEN_COLON);
 
-[a-zA-Z_][a-zA-Z0-9_]*  SAVE_TOKEN; return TIDENTIFIER;
+[a-zA-Z_][a-zA-Z0-9_]*  SAVE_TOKEN; return TOKEN_IDENTIFIER;
 
 ";"                     yyterminate();
 [\0\-1]                 yyterminate();
-.                       return TERROR;
+.                       return TOKEN_ERROR;
 
 %%

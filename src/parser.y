@@ -15,6 +15,9 @@
     }
 %}
 
+/* %name-prefix "p" */
+/* %define api.prefix p */
+
 /* define data structure for parser use */
 %union {
     ExpressionNode* expressionNode;
@@ -43,12 +46,13 @@
  *
  * These constants should match the ones defined in tokens.l
  */
-%token <string> TIDENTIFIER TINTEGER TREAL
+%token <string> TOKEN_IDENTIFIER TOKEN_INTEGER TOKEN_REAL
 
-%token <token> TERROR
-%token <token> TNEWLINE
-%token <token> TLPAREN TRPAREN TLBRACE TRBRACE TCOMMA TDOT TCOLON
-%token <string> TOPERATOR
+%token <token> TOKEN_ERROR
+%token <token> TOKEN_NEWLINE
+%token <token> TOKEN_LPAREN TOKEN_RPAREN TOKEN_LBRACE TOKEN_RBRACE TOKEN_COMMA
+%token <token> TOKEN_DOT TOKEN_COLON
+%token <string> TOKEN_OPERATOR
 
 /*
  * non-terminals
@@ -67,10 +71,10 @@
 %type <statementNode> statement
 
 /* Operator precedence for mathematical operators */
-%nonassoc TASSIGNMENT
-%left TPLUS TMINUS
-%left TMUL TDIV TMOD
-%left TPOW
+%nonassoc TOKEN_ASSIGNMENT
+%left TOKEN_PLUS TOKEN_MINUS
+%left TOKEN_MUL TOKEN_DIV TOKEN_MOD
+%left TOKEN_POW
 
 %start oneExpression
 
@@ -106,7 +110,7 @@ expression:
         $$ = $1;
     }
     |
-    TMINUS expression {
+    TOKEN_MINUS expression {
         $$ = new SubtractionNode(new IntegerNode(0), $2);
     }
     |
@@ -120,7 +124,7 @@ statement:
     };
 
 assignment:
-    expression TASSIGNMENT expression {
+    expression TOKEN_ASSIGNMENT expression {
         $$ = new AssignmentNode($1, $3);
     };
 
@@ -134,21 +138,21 @@ constant:
     };
 
 variable:
-    TIDENTIFIER {
+    TOKEN_IDENTIFIER {
         $$ = new VariableNode(*$1);
         delete $1;
         $1 = 0;
     };
 
 integerConst:
-    TINTEGER {
+    TOKEN_INTEGER {
         $$ = new IntegerNode(*$1);
         delete $1;
         $1 = 0;
     };
 
 realConst:
-    TREAL {
+    TOKEN_REAL {
         $$ = new RealNode(*$1);
         delete $1;
         $1 = 0;
@@ -160,12 +164,12 @@ expressionList:
         $$->push_back($1);
     }
     |
-    expressionList TCOMMA expression {
+    expressionList TOKEN_COMMA expression {
         $1->push_back($3);
     };
 
 function:
-    TIDENTIFIER TLPAREN expressionList TRPAREN {
+    TOKEN_IDENTIFIER TOKEN_LPAREN expressionList TOKEN_RPAREN {
         Function* func = Functions::getNativeFunction(*$1, $3->size());
         if (func == 0)
             func = new Function(*$1, $3->size());
@@ -202,37 +206,37 @@ operation:
     };
 
 addition:
-    expression TPLUS expression {
+    expression TOKEN_PLUS expression {
         $$ = new AdditionNode($1, $3);
     };
 
 subtraction:
-    expression TMINUS expression {
+    expression TOKEN_MINUS expression {
         $$ = new SubtractionNode($1, $3);
     };
 
 multiplication:
-    expression TMUL expression {
+    expression TOKEN_MUL expression {
         $$ = new MultiplicationNode($1, $3);
     };
 
 modulo:
-    expression TMOD expression {
+    expression TOKEN_MOD expression {
         $$ = new ModuloNode($1, $3);
     };
 
 division:
-    expression TDIV expression {
+    expression TOKEN_DIV expression {
         $$ = new DivisionNode($1, $3);
     };
 
 power:
-    expression TPOW expression {
+    expression TOKEN_POW expression {
         $$ = new PowerNode($1, $3);
     };
 
 parenthExpr:
-    TLPAREN expression TRPAREN {
+    TOKEN_LPAREN expression TOKEN_RPAREN {
         $$ = $2;
     };
 

@@ -1,5 +1,6 @@
 CXX         := clang++
-CXXFLAGS    := -g
+CXXFLAGS    := -g #-O3 -fomit-frame-pointer -flto
+LNFLAGS     := #-flto
 YACC        := bison
 LEX         := flex
 
@@ -9,7 +10,7 @@ EXECUTABLE  := mathy
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CXX) $(OBJECTS) -o $(EXECUTABLE)
+	$(CXX) $(OBJECTS) -o $(EXECUTABLE) $(LNFLAGS)
 
 %.o: %.c
 		$(CXX) -c -o $@ $< $(CXXFLAGS)

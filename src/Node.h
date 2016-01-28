@@ -22,6 +22,7 @@ public:
 	void free(void);
 };
 
+
 class ExpressionNode
 {
 public:

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 3.0.  */
+/* A Bison parser, made by GNU Bison 3.0.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
@@ -45,26 +45,26 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    TIDENTIFIER = 258,
-    TINTEGER = 259,
-    TREAL = 260,
-    TERROR = 261,
-    TNEWLINE = 262,
-    TLPAREN = 263,
-    TRPAREN = 264,
-    TLBRACE = 265,
-    TRBRACE = 266,
-    TCOMMA = 267,
-    TDOT = 268,
-    TCOLON = 269,
-    TOPERATOR = 270,
-    TASSIGNMENT = 271,
-    TPLUS = 272,
-    TMINUS = 273,
-    TMUL = 274,
-    TDIV = 275,
-    TMOD = 276,
-    TPOW = 277
+    TOKEN_IDENTIFIER = 258,
+    TOKEN_INTEGER = 259,
+    TOKEN_REAL = 260,
+    TOKEN_ERROR = 261,
+    TOKEN_NEWLINE = 262,
+    TOKEN_LPAREN = 263,
+    TOKEN_RPAREN = 264,
+    TOKEN_LBRACE = 265,
+    TOKEN_RBRACE = 266,
+    TOKEN_COMMA = 267,
+    TOKEN_DOT = 268,
+    TOKEN_COLON = 269,
+    TOKEN_OPERATOR = 270,
+    TOKEN_ASSIGNMENT = 271,
+    TOKEN_PLUS = 272,
+    TOKEN_MINUS = 273,
+    TOKEN_MUL = 274,
+    TOKEN_DIV = 275,
+    TOKEN_MOD = 276,
+    TOKEN_POW = 277
   };
 #endif
 
@@ -73,7 +73,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 19 "parser.y" /* yacc.c:1915  */
+#line 22 "parser.y" /* yacc.c:1909  */
 
     ExpressionNode* expressionNode;
     StatementNode* statementNode;
@@ -95,7 +95,7 @@ union YYSTYPE
     int token;
     std::string* string;
 
-#line 99 "parser.h" /* yacc.c:1915  */
+#line 99 "parser.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
