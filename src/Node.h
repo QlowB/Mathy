@@ -169,7 +169,7 @@ protected:
 class FunctionNode :
 	public ParentNode
 {
-	std::string functionName;
+    std::string functionName;
     std::vector<std::shared_ptr<ExpressionNode> > arguments;
 	const Function* function;
 	

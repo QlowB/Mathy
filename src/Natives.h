@@ -2,6 +2,7 @@
 #define NATIVES_H_
 #include <utility>
 #include <memory>
+#include <unordered_map>
 #include <map>
 
 #include "Function.h"
@@ -23,13 +24,13 @@ public:
 
 
 class NativeFunction :
-	public Function
+    public Function
 {
 public:
     NativeFunction(const std::string& name, size_t argumentCount);
-    virtual std::shared_ptr<ExpressionNode> eval(
+    /*virtual std::shared_ptr<ExpressionNode> eval(
         Environment* e,
-        const std::vector<std::shared_ptr<ExpressionNode> >& args) const = 0;
+        const std::vector<std::shared_ptr<ExpressionNode> >& args) const;*/
 };
 
 
@@ -95,7 +96,8 @@ public:
 class Functions
 {
 private:
-    static std::map<std::pair<std::string, size_t>, NativeFunction*> functions;
+    static std::map<std::pair<std::string, size_t>, NativeFunction*>
+        functions;
     static bool initialized;
     static void initialize(void);
 public:

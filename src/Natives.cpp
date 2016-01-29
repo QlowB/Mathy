@@ -287,7 +287,8 @@ Constants::getConstant(const std::string& name)
 }
 
 
-std::map<std::pair<std::string, size_t>, NativeFunction*> Functions::functions;
+std::map<std::pair<std::string, size_t>, NativeFunction*>
+    Functions::functions;
 bool Functions::initialized = false;
 
 

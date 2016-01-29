@@ -2,12 +2,11 @@
 #include "Node.h"
 #include <sstream>
 #include <iostream>
-#include <typeinfo>
 
 Function::Function(const std::string& name, size_t argumentCount) :
 	name(name), argumentCount(argumentCount)
 {
-    std::cout << getName() << std::endl;
+    //std::cout << getName() << std::endl;
     //std::cout << typeid(this).name() << std::endl;
 }
 
