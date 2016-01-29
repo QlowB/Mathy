@@ -36,7 +36,6 @@ public:
      *
      * \param i the index after which argument the function should be derivated
      * \param args the arguments to the function
-     * \param gb a garbage bag collecting references which can be eliminated sometime
      */
     virtual std::shared_ptr<ExpressionNode> getDerivative(
             size_t i,
