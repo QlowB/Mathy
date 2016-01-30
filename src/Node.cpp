@@ -236,6 +236,7 @@ std::string FunctionNode::getString(void) const
 #include <iostream>
 std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
 {
+    //std::cout << "needs: " << function->getName() << "\n";
     if (function != 0) {
         std::shared_ptr<ExpressionNode> ev = function->eval(e, arguments);
         if (ev != 0)
@@ -438,11 +439,19 @@ SubtractionNode::SubtractionNode(const std::shared_ptr<ExpressionNode>& a,
 
 std::string SubtractionNode::getString(void) const
 {
-    if (dynamic_cast<PlusMinus*> (&*b) != 0) {
-        return a->getString() + " " + getOperator() + " (" + b->getString() + ")";
+    bool zero = false;
+    IntegerNode* in;
+    if ((in = dynamic_cast<IntegerNode*>(a.get())) != 0) {
+        if (in->getValue() == 0)
+            zero = true;
+    }
+    if (dynamic_cast<PlusMinus*> (b.get()) != 0) {
+        return (!zero ? (a->getString() + " ") : "") + getOperator() + " (" +
+            b->getString() + ")";
     }
     else
-        return a->getString() + " " + getOperator() + " " + b->getString();
+        return (!zero ? (a->getString() + " ") : "") + getOperator() +
+            " " + b->getString();
 }
 
 

@@ -28,6 +28,8 @@ class NativeFunction :
 {
 public:
     NativeFunction(const std::string& name, size_t argumentCount);
+    
+    //virtual const std::string& getName(void) const { return asa; }
     /*virtual std::shared_ptr<ExpressionNode> eval(
         Environment* e,
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const;*/
@@ -48,7 +50,7 @@ public:
                       MathFunc function,
                       NativeNumFunction* derivative);
 
-    virtual const std::string& getName(void) const;
+    //virtual const std::string& getName(void) const;
 
     virtual std::shared_ptr<ExpressionNode> eval(
             Environment* e,
@@ -71,7 +73,19 @@ class Log :
 {
 public:
     Log(void);
-    virtual const std::string& getName(void) const;
+    //virtual const std::string& getName(void) const;
+    virtual std::shared_ptr<ExpressionNode> getDerivative(
+            size_t i,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
+};
+
+
+class Cos :
+    public NativeNumFunction
+{
+public:
+    Cos(void);
+
     virtual std::shared_ptr<ExpressionNode> getDerivative(
             size_t i,
             const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
@@ -82,7 +96,7 @@ class DerivativeFunction :
 	public NativeFunction
 {
 public:
-	DerivativeFunction(const std::string& name);
+    DerivativeFunction(const std::string& name);
     virtual std::shared_ptr<ExpressionNode> eval(
             Environment* e,
             const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
@@ -105,7 +119,7 @@ public:
     static NativeFunction* getNativeFunction(const std::string& name, int nArgs);
 
     static NativeNumFunction sin;
-    static NativeNumFunction cos;
+    static Cos cos;
     static NativeNumFunction tan;
     static NativeNumFunction asin;
     static NativeNumFunction acos;

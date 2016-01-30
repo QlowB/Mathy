@@ -1,23 +1,27 @@
 %{
-    #include "Node.h"
-    #include "Natives.h"
-    #include <cstdlib>
-    #include <exception>
-    #include <memory>
-    #include <cstdio>
 
-    /*! \brief root node of the AST */
-    std::shared_ptr<ExpressionNode> expr;
+#include "Node.h"
+#include "Natives.h"
+#include <cstdlib>
+#include <exception>
+#include <memory>
+#include <cstdio>
+#include <iostream>
 
-    extern int yylex();
-    void yyerror(const char *s)
-    {
-        while(yylex());
-        throw "parse error";
-    }
+/*! \brief root node of the AST */
+std::shared_ptr<ExpressionNode> expr;
 
-    template <typename T>
-    using sp = std::shared_ptr<T>;
+extern int yylex();
+void yyerror(const char *s)
+{
+    while(yylex());
+    throw "parse error";
+}
+
+template <typename T>
+using sp = std::shared_ptr<T>;
+
+
 %}
 
 /* %name-prefix "p" */
@@ -181,8 +185,10 @@ expressionList:
 function:
     TOKEN_IDENTIFIER TOKEN_LPAREN expressionList TOKEN_RPAREN {
         Function* func = Functions::getNativeFunction(*$1, $3->size());
-        if (func == 0)
+        if (func == 0) {
+            std::cout << "no function " << *$1 << " with " << $3->size() << " arguments.\n";
             func = new Function(*$1, $3->size());
+        }
         $$ = new FunctionNode(func, *$3);
         delete $1;
         delete $3;

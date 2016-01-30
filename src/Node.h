@@ -179,8 +179,8 @@ class FunctionNode :
 	 */
 	bool deleteFunction;
 public:
-	
-	FunctionNode(const Function* function);
+
+    FunctionNode(const Function* function);
     FunctionNode(const Function* function,
                const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
 	virtual ~FunctionNode(void);

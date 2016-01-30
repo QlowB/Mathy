@@ -42,12 +42,6 @@ NativeNumFunction::NativeNumFunction(const std::string& name,
 {
 }
 
-const std::string& NativeNumFunction::getName() const
-{
-    static const std::string t = "Nativ!";
-    return t;
-}
-
 
 std::shared_ptr<ExpressionNode> NativeNumFunction::eval(Environment* e,
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const
@@ -89,16 +83,8 @@ std::shared_ptr<ExpressionNode> NativeNumFunction::getDerivative(
 
 
 Log::Log(void) :
-    NativeNumFunction("ln", &::log, &Functions::acos)
-    //NativeNumFunction(name, function, derivative)
+    NativeNumFunction("ln", &::log, nullptr)
 {
-}
-
-
-const std::string& Log::getName() const
-{
-    static const std::string t = "Helauu!";
-    return t;
 }
 
 
@@ -108,6 +94,22 @@ std::shared_ptr<ExpressionNode> Log::getDerivative(
 {
     return std::make_shared<DivisionNode>(std::make_shared<IntegerNode>(1),
                                           args[0]);
+}
+
+
+
+Cos::Cos(void) :
+    NativeNumFunction("cos", &::cos, nullptr)
+{
+}
+
+
+std::shared_ptr<ExpressionNode> Cos::getDerivative(
+        size_t i,
+        const std::vector<std::shared_ptr<ExpressionNode> >& args) const
+{
+    return std::make_shared<SubtractionNode>(std::make_shared<IntegerNode>(0),
+            std::make_shared<FunctionNode>(&Functions::sin, args));
 }
 
 
@@ -209,8 +211,8 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
             std::dynamic_pointer_cast<PowerNode>(value);
     if (pow != 0) {
         
-        std::cout << "POW begin\n";
-        static const Function* logfnc = new Function("loggy", 1);//&Functions::ln;
+        //std::cout << "POW begin\n";
+        static const Function* logfnc = &Functions::ln;
         
         // d/dx (f(x) ^ g(x)) = f(x)^g(x) * (g(x)*f'(x)/f(x) + log(f(x))g'(x))
         std::shared_ptr<ExpressionNode> a = getDerivative(e, pow->a, variable);
@@ -229,10 +231,11 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
                 std::make_shared<AdditionNode>(bruch, secondMul);
         std::shared_ptr<MultiplicationNode> result =
                 std::make_shared<MultiplicationNode>(pow, paranSum);
-
+        return result->evaluate(e);
+        /*std::cout << result->getString();
         std::shared_ptr<ExpressionNode> expr = result->evaluate(e);
         std::cout << "POW end\n";
-        return expr;
+        return expr;*/
     }
 
     FunctionNode* func = dynamic_cast<FunctionNode*>(&*value);
@@ -322,11 +325,13 @@ void Functions::initialize(void)
 
 void Functions::add(NativeFunction* value)
 {
+    using std::pair;
+    using std::string;
     const std::string& name = value->getName();
     size_t nArgs = value->getArgumentCount();
     functions.insert(
-        std::pair<std::pair<std::string, size_t>, NativeFunction*>(
-            std::pair<std::string, size_t> (name, nArgs), value 
+        pair<pair<string, size_t>, NativeFunction*>(
+            pair<string, size_t> (name, nArgs), value 
         )
     );
 }
@@ -338,22 +343,29 @@ NativeFunction* Functions::getNativeFunction(const std::string& name, int nArgs)
         initialize();
         initialized = true;
     }
-    
-    if (functions.find(std::pair<std::string, int> (name, nArgs)) != functions.end())
-        return functions[std::pair<std::string, int> (name, nArgs)];
+
+    //std::cout << "looking for: " << name << " with " << nArgs << " args" << std::endl;
+    //std::cout << "list has " << functions.size() << " entries." << std::endl;
+    //for (auto i = functions.begin(); i != functions.end(); i++)
+    //{
+    //    std::cout << "element: " << (*i).second->getName();
+    //}
+
+    auto elem = functions.find(std::pair<std::string, int> (name, nArgs)); 
+    if (elem != functions.end())
+        return elem->second;
     else
         return 0;
 }
 
 NativeNumFunction Functions::sin("sin", &::sin, &Functions::cos);
-NativeNumFunction Functions::cos("cos", &::cos, &Functions::cos);
+Cos Functions::cos;
 NativeNumFunction Functions::tan("tan", &::tan, &Functions::cos);
 NativeNumFunction Functions::asin("asin", &::asin, &Functions::cos);
 NativeNumFunction Functions::acos("acos", &::acos, &Functions::cos);
 NativeNumFunction Functions::atan("atan", &::atan, &Functions::cos);
 NativeNumFunction Functions::exp("exp", &::exp, &Functions::cos);
 Log Functions::ln;
-//Ln Functions::ln;
 NativeNumFunction Functions::sinh("sinh", &::sinh, &Functions::cosh);
 NativeNumFunction Functions::cosh("cosh", &::cosh, &Functions::sinh);
 

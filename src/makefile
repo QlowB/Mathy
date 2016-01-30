@@ -1,13 +1,21 @@
 CXX         := g++
-CXXFLAGS    := -Wno-deprecated-register -std=c++11 -g
-#CXXFLAGS    := -std=c++11 -O3 -fomit-frame-pointer -flto
-LNFLAGS     := #-flto
+WARNFLAGS   := -Wno-deprecated-register
+CXXFLAGS    := $(WARNFLAGS) -std=c++11
+LNFLAGS     := 
 YACC        := bison
 LEX         := flex
 
 OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o
 EXECUTABLE  := mathy
 
+debug: CXXFLAGS += -g
+debug: all
+
+release: CXXFLAGS += -O3 -fomit-frame-pointer -flto
+release: LNFLAGS += -flto -O3
+release: all
+
+.PHONY: all
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
@@ -22,7 +30,8 @@ parser.cpp: parser.y
 tokens.cpp: tokens.l
 	$(LEX) -o $@ $<
 
-clear:
+.PHONY: clean
+clean:
 	rm *.o parser.h parser.cpp tokens.cpp
 
 
