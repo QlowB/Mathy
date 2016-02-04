@@ -11,8 +11,12 @@ EXECUTABLE  := mathy
 debug: CXXFLAGS += -g
 debug: all
 
-release: CXXFLAGS += -O3 -fomit-frame-pointer -flto
-release: LNFLAGS += -flto -O3
+fast: CXXFLAGS += -O3 -flto -fomit-frame-pointer
+fast: LNFLAGS += -flto -O3
+fast: all
+
+release: CXXFLAGS += -O3 -fomit-frame-pointer
+release: LNFLAGS += -O3
 release: all
 
 .PHONY: all
