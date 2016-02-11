@@ -5,13 +5,13 @@ LNFLAGS     :=
 YACC        := bison
 LEX         := flex
 
-OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o
+OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o platform.o
 EXECUTABLE  := mathy
 
 debug: CXXFLAGS += -g
 debug: all
 
-fast: CXXFLAGS += -O3 -flto -fomit-frame-pointer
+fast: CXXFLAGS += -flto -O3 -fomit-frame-pointer
 fast: LNFLAGS += -flto -O3
 fast: all
 
