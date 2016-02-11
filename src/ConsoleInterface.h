@@ -23,24 +23,49 @@
 #define CONSOLEINTERFACE_H_
 
 #include <string>
+#include <cstdio>
 
-class ConsoleInterface
+namespace mathy
 {
+    class InputProcessor;
+
+    class ConsoleInterface;
+}
+
+
+class mathy::InputProcessor
+{
+protected:
+    ::FILE* in;
+    ::FILE* out;
+
 public:
-    ConsoleInterface(int argc, char** argv);
+    InputProcessor(::FILE* in, ::FILE* out);
 
     /*!
-     * \brief run the m
-     * \return
+     * \brief run the input processing
      */
-    int run(void);
+    virtual int run();
 
     /*!
      * \brief prints an error message to standard error output
      *
      * \param message the error message to print
      */
-    void printErrorMessage(const std::string& message);
+    virtual void printErrorMessage(const std::string& message);
+};
+
+
+class mathy::ConsoleInterface : public InputProcessor
+{
+public:
+
+    ConsoleInterface(::FILE* in, ::FILE* out);
+
+    /*!
+     * \brief run the interface
+     */
+    virtual int run(void);
 };
 
 

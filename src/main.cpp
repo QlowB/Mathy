@@ -20,19 +20,23 @@
 // =============================================================================
 
 #include "ConsoleInterface.h"
-#include "platform.h"
+#include "sys.h"
+#include <cstdio>
 
 int main(int argc, char** argv)
 {
-    if (geto)
+    using mathy::sys::OptionsParser;
+    OptionsParser op(argc, argv);
+
 
     // if run from terminal, provide better prompt
-    if (mathy::isRunInTerminal()) {
-        ConsoleInterface ci(argc, argv);
+    if (mathy::sys::isRunInTerminal()) {
+        mathy::ConsoleInterface ci(stdin, stdout);
         return ci.run();
     }
     // if not run from terminal, just process raw input.
     else {
-
+        mathy::InputProcessor ip(stdin, stdout);
+        return ip.run();
     }
 }
