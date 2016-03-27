@@ -44,15 +44,15 @@ class ExpressionNode :
         public std::enable_shared_from_this<ExpressionNode>
 {
 public:
-	virtual ~ExpressionNode(void);
-	
+    virtual ~ExpressionNode(void);
+    
     /*!
      * \brief transforms the expression to a string that can be written to
      *        the output
      *
      * \return a string representing this expression
      */
-	virtual std::string getString(void) const = 0;
+    virtual std::string getString(void) const = 0;
 
     /*!
      * \brief evaluates the expression as far as possible
@@ -63,6 +63,11 @@ public:
      *         expression might evaluate to itself.
      */
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+
+    /*!
+     * \brief returns a simplified version of this Expression
+     */
+    virtual std::shared_ptr<ExpressionNode> basicSimplify(Environment* e);
 
     /*!
      * \brief compare this expression to another one
@@ -94,67 +99,67 @@ class StatementNode :
 
 
 class ConstantNode :
-	public ExpressionNode
+    public ExpressionNode
 {
 public:
 };
 
 
 class IntegerNode :
-	public ConstantNode
+    public ConstantNode
 {
-	long long int value;
+    long long int value;
 public:
-	
-	static const IntegerNode ZERO;
+    
+    static const IntegerNode ZERO;
 
-	IntegerNode(long long int value);
-	IntegerNode(const std::string& value);
-	
-	long long int getValue(void) const;
-	
-	virtual std::string getString(void) const;
+    IntegerNode(long long int value);
+    IntegerNode(const std::string& value);
+    
+    long long int getValue(void) const;
+    
+    virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment*);
-	
+    
     virtual bool equals(const ExpressionNode* other) const;
 };
 
 
 class RealNode :
-	public ConstantNode
+    public ConstantNode
 {
-	FloatVal value;
+    FloatVal value;
 public:
-	RealNode(FloatVal value);
-	RealNode(const std::string& value);
-	
-	FloatVal getValue(void) const;
-	
-	virtual std::string getString(void) const;
+    RealNode(FloatVal value);
+    RealNode(const std::string& value);
+    
+    FloatVal getValue(void) const;
+    
+    virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment*);
-	
+    
     virtual bool equals(const ExpressionNode* other) const;
 };
 
 
 class VariableNode :
-	public ExpressionNode
+    public ExpressionNode
 {
-	std::string name;
+    std::string name;
 
     /*! if it's a constant */
     std::weak_ptr<ExpressionNode> constant;
 public:
-	VariableNode(const std::string& value);
-	
+    VariableNode(const std::string& value);
+    
     /*!
      * \brief getString
      * \return the name of this variable
      */
-	virtual std::string getString(void) const;
+    virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
-	
-	virtual bool equals(const ExpressionNode*) const;
+    
+    virtual bool equals(const ExpressionNode*) const;
 };
 
 
@@ -167,55 +172,55 @@ protected:
 
 
 class FunctionNode :
-	public ParentNode
+    public ParentNode
 {
     std::string functionName;
     std::vector<std::shared_ptr<ExpressionNode> > arguments;
-	const Function* function;
-	
-	/*!
-	 * true if <code>function</code> needs to be deleted
-	 * on destruction of this node
-	 */
-	bool deleteFunction;
+    const Function* function;
+    
+    /*!
+     * true if <code>function</code> needs to be deleted
+     * on destruction of this node
+     */
+    bool deleteFunction;
 public:
 
     FunctionNode(const Function* function);
     FunctionNode(const Function* function,
                const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
-	virtual ~FunctionNode(void);
-	
+    virtual ~FunctionNode(void);
+    
     void addArgument(const std::shared_ptr<ExpressionNode>& argument);
-	
-	virtual std::string getString(void) const;
+    
+    virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
-	
-	virtual size_t getArgumentCount(void) const;
+    
+    virtual size_t getArgumentCount(void) const;
     virtual const std::shared_ptr<ExpressionNode>& getArgument(size_t i) const;
-	
-	/*!
-	 * calculates the derivative in the i-th parameter
-	 */
+    
+    /*!
+     * calculates the derivative in the i-th parameter
+     */
     virtual std::shared_ptr<ExpressionNode> getDerivative(size_t i) const;
-	
-	virtual bool equals(const ExpressionNode*) const;
+    
+    virtual bool equals(const ExpressionNode*) const;
 };
 
 
 class OperationNode :
-	public ParentNode
+    public ParentNode
 {
 public:
     std::shared_ptr<ExpressionNode> a;
     std::shared_ptr<ExpressionNode> b;
 protected:
-	
+    
     OperationNode(const std::shared_ptr<ExpressionNode>& a,
                   const std::shared_ptr<ExpressionNode>& b);
-	virtual ~OperationNode(void);
-	virtual std::string getString(void) const;
-	virtual std::string getOperator(void) const = 0;
-	
+    virtual ~OperationNode(void);
+    virtual std::string getString(void) const;
+    virtual std::string getOperator(void) const = 0;
+    
 public:
     inline const std::shared_ptr<ExpressionNode>& getLeft(void) { return a; }
     inline const std::shared_ptr<ExpressionNode>& getRight(void) { return b; }
@@ -236,7 +241,7 @@ public:
 
 
 class PlusMinus :
-	public OperationNode
+    public OperationNode
 {
 public:
     inline PlusMinus(const std::shared_ptr<ExpressionNode>& a,
@@ -246,97 +251,97 @@ public:
 
 
 class AdditionNode :
-	public PlusMinus
+    public PlusMinus
 {
 public:
     AdditionNode(const std::shared_ptr<ExpressionNode>& a,
                  const std::shared_ptr<ExpressionNode>& b);
-	virtual std::string getOperator(void) const;
+    virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
 };
 
 
 class SubtractionNode :
-	public PlusMinus
+    public PlusMinus
 {
 public:
     SubtractionNode(const std::shared_ptr<ExpressionNode>& a,
                     const std::shared_ptr<ExpressionNode>& b);
-	
-	virtual std::string getString(void) const;
+    
+    virtual std::string getString(void) const;
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
 };
 
 
 class MultDivMod :
-	public OperationNode
+    public OperationNode
 {
 public:
     inline MultDivMod(const std::shared_ptr<ExpressionNode>& a,
                       const std::shared_ptr<ExpressionNode>& b) :
         OperationNode(a, b) {}
-	virtual std::string getString(void) const;
+    virtual std::string getString(void) const;
 };
 
 
 class MultiplicationNode :
-	public MultDivMod
+    public MultDivMod
 {
 public:
     MultiplicationNode(const std::shared_ptr<ExpressionNode>& a,
                        const std::shared_ptr<ExpressionNode>& b);
-	
-	virtual std::string getOperator(void) const;
+    
+    virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
 };
 
 
 class ModuloNode :
-	public MultDivMod
+    public MultDivMod
 {
 public:
     ModuloNode(const std::shared_ptr<ExpressionNode>& a,
                const std::shared_ptr<ExpressionNode>& b);
-	
-	virtual std::string getOperator(void) const;
+    
+    virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
 };
 
 
 class DivisionNode :
-	public MultDivMod
+    public MultDivMod
 {
 public:
     DivisionNode(const std::shared_ptr<ExpressionNode>& a,
                  const std::shared_ptr<ExpressionNode>& b);
-	
-	virtual std::string getOperator(void) const;
+    
+    virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
 };
 
 
 class PowerNode :
-	public OperationNode
+    public OperationNode
 {
 public:
     PowerNode(const std::shared_ptr<ExpressionNode>& a,
               const std::shared_ptr<ExpressionNode>& b);
-	
-	virtual std::string getOperator(void) const;
+    
+    virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
-	virtual std::string getString(void) const;
+    virtual std::string getString(void) const;
 };
 
 
 class ArithmeticException :
-	public std::exception
+    public std::exception
 {
-	std::string whatStr;
+    std::string whatStr;
 public:
     ArithmeticException(const std::string& whatStr);
     ~ArithmeticException(void) throw();
-	const char* what(void) const throw();
+    const char* what(void) const throw();
 };
 
 
