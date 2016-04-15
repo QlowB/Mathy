@@ -8,6 +8,10 @@ LEX         := flex
 OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o sys.o
 EXECUTABLE  := mathy
 
+#bit32: CXXFLAGS += -m32
+#bit32: LNFLAGS += -m32
+#bit32: all
+
 debug: CXXFLAGS += -g
 debug: all
 
