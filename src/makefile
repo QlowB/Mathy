@@ -1,7 +1,7 @@
 CXX         := g++
 WARNFLAGS   := -Wno-deprecated-register
 CXXFLAGS    := $(WARNFLAGS) -std=c++11
-LNFLAGS     := 
+LNFLAGS     :=
 YACC        := bison
 LEX         := flex
 
@@ -18,6 +18,10 @@ fast: all
 release: CXXFLAGS += -O3 -fomit-frame-pointer
 release: LNFLAGS += -O3
 release: all
+
+release32: CXXFLAGS += -m32
+release32: LNFLAGS += -m32
+release32: release
 
 .PHONY: all
 all: $(EXECUTABLE)

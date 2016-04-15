@@ -446,12 +446,12 @@ std::string SubtractionNode::getString(void) const
             zero = true;
     }
     if (dynamic_cast<PlusMinus*> (b.get()) != 0) {
-        return (!zero ? (a->getString() + " ") : "") + getOperator() + " (" +
-            b->getString() + ")";
+        return (!zero ? (a->getString() + " ") : "") + getOperator() +
+            (zero ? "" : " ") + "(" + b->getString() + ")";
     }
     else
         return (!zero ? (a->getString() + " ") : "") + getOperator() +
-            " " + b->getString();
+            (zero ? "" : " ") + b->getString();
 }
 
 
