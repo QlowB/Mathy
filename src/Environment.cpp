@@ -40,10 +40,17 @@ VariableSymbol::VariableSymbol(const std::string& name,
 }
 
 
-const std::shared_ptr<ExpressionNode>& VariableSymbol::getValue(void)
+const std::shared_ptr<ExpressionNode>& VariableSymbol::getValue(void) const
 {
     return value;
 }
+
+
+void VariableSymbol::setValue(const std::shared_ptr<ExpressionNode>& v)
+{
+    value = v;
+}
+
 
 
 FunctionParameter::FunctionParameter(int index) :

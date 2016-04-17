@@ -41,6 +41,12 @@ std::shared_ptr<ExpressionNode> ExpressionNode::evaluate(Environment*)
 }
 
 
+std::shared_ptr<ExpressionNode> ExpressionNode::basicSimplify(Environment*)
+{
+    return shared_from_this();
+}
+
+
 bool ExpressionNode::equals(const ExpressionNode* other) const
 {
     if (this == other)
@@ -194,13 +200,13 @@ ParentNode::ParentNode(void)
 }
 
 
-FunctionNode::FunctionNode(const Function* function) :
+FunctionCallNode::FunctionCallNode(const Function* function) :
     functionName(function->getName()), function(function)
 {
 }
 
 
-FunctionNode::FunctionNode(
+FunctionCallNode::FunctionCallNode(
         const Function* function,
         const std::vector<std::shared_ptr<ExpressionNode> >& arguments) :
     functionName(function->getName()), function(function), arguments(arguments)
@@ -208,19 +214,19 @@ FunctionNode::FunctionNode(
 }
 
 
-FunctionNode::~FunctionNode(void)
+FunctionCallNode::~FunctionCallNode(void)
 {
 }
 
 
-void FunctionNode::addArgument(const std::shared_ptr<ExpressionNode>& argument)
+void FunctionCallNode::addArgument(const std::shared_ptr<ExpressionNode>& argument)
 {
     arguments.push_back(argument);
     function = Functions::getNativeFunction(functionName, arguments.size());
 }
 
 
-std::string FunctionNode::getString(void) const
+std::string FunctionCallNode::getString(void) const
 {
     std::string ret = functionName + "(";
     for (size_t i = 0; i < arguments.size(); i++) {
@@ -234,7 +240,7 @@ std::string FunctionNode::getString(void) const
 }
 
 #include <iostream>
-std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
+std::shared_ptr<ExpressionNode> FunctionCallNode::evaluate(Environment* e)
 {
     //std::cout << "needs: " << function->getName() << "\n";
     if (function != 0) {
@@ -248,8 +254,8 @@ std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
     //RealNode* real = dynamic_cast<RealNode*>(eval.get());
     //IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
    
-    std::shared_ptr<FunctionNode> fn =
-            std::make_shared<FunctionNode>(function, arguments);
+    std::shared_ptr<FunctionCallNode> fn =
+            std::make_shared<FunctionCallNode>(function, arguments);
 
     for (size_t i = 0; i < arguments.size(); i++) {
         std::shared_ptr<ExpressionNode> en = arguments[i]->evaluate(e);
@@ -260,20 +266,20 @@ std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
 }
 
 
-size_t FunctionNode::getArgumentCount(void) const
+size_t FunctionCallNode::getArgumentCount(void) const
 {
     return arguments.size();
 }
 
 
-const std::shared_ptr<ExpressionNode>& FunctionNode::getArgument(size_t i) const
+const std::shared_ptr<ExpressionNode>& FunctionCallNode::getArgument(size_t i) const
 {
     return arguments[i];
 }
 
 
 #include <iostream>
-std::shared_ptr<ExpressionNode> FunctionNode::getDerivative(size_t i) const
+std::shared_ptr<ExpressionNode> FunctionCallNode::getDerivative(size_t i) const
 {
     //std::stringstream ind;
     //ind << i;
@@ -285,19 +291,19 @@ std::shared_ptr<ExpressionNode> FunctionNode::getDerivative(size_t i) const
     }
     return nullptr;
     if (arguments.size() != 1) {
-        // return new FunctionNode(functionName + "'(" +  ind.str() + ")", arguments);
+        // return new FunctionCallNode(functionName + "'(" +  ind.str() + ")", arguments);
     } else {
-        // return new FunctionNode(functionName + "'", arguments);
+        // return new FunctionCallNode(functionName + "'", arguments);
     }
 }
 
 
-bool FunctionNode::equals(const ExpressionNode* en) const
+bool FunctionCallNode::equals(const ExpressionNode* en) const
 {
     if (ExpressionNode::equals(en))
         return true;
     
-    const FunctionNode* type = dynamic_cast<const FunctionNode*> (en);
+    const FunctionCallNode* type = dynamic_cast<const FunctionCallNode*> (en);
     
     if (type != 0) {
         bool eq = type->function == this->function;
@@ -356,19 +362,22 @@ std::string AssignmentNode::getString(void) const
 
 std::shared_ptr<ExpressionNode> AssignmentNode::evaluate(Environment* e)
 {
-    std::shared_ptr<AssignmentNode> node = std::make_shared<AssignmentNode>(
-        a->evaluate(e), b->evaluate(e)
-    );
+    std::shared_ptr<ExpressionNode> newValue = b->evaluate(e);
 
     std::shared_ptr<VariableNode> var =
-            std::dynamic_pointer_cast<VariableNode> (node->a);
+            std::dynamic_pointer_cast<VariableNode> (a);
     if (var) {
-        e->addSymbol(new VariableSymbol(var->getString(), node->b));
+        const std::string varName = var->getString();
+        VariableSymbol* vs = e->getVariable(varName);
+        if (vs)
+            vs->setValue(newValue);
+        else
+            e->addSymbol(new VariableSymbol(var->getString(), newValue));
     }
     else {
         throw ArithmeticException("left side of assignment must be a variable");
     }
-    return node;
+    return std::make_shared<AssignmentNode> (a, newValue);
 }
 
 

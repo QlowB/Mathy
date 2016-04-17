@@ -45,7 +45,8 @@ protected:
 public:
     VariableSymbol(const std::string& name,
                    const std::shared_ptr<ExpressionNode>& value);
-    const std::shared_ptr<ExpressionNode>& getValue(void);
+    const std::shared_ptr<ExpressionNode>& getValue(void) const;
+    void setValue(const std::shared_ptr<ExpressionNode>& val);
 };
 
 

@@ -172,37 +172,47 @@ protected:
 
 
 class FunctionNode :
-    public ParentNode
+    public ExpressionNode
 {
-    std::string functionName;
-    std::vector<std::shared_ptr<ExpressionNode> > arguments;
-    const Function* function;
-    
-    /*!
-     * true if <code>function</code> needs to be deleted
-     * on destruction of this node
-     */
-    bool deleteFunction;
+    size_t argumentCount;
+    std::vector<std::shared_ptr<VariableNode> > argumentNames;
+    std::shared_ptr<ExpressionNode> equation;
+
 public:
 
-    FunctionNode(const Function* function);
-    FunctionNode(const Function* function,
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::shared_ptr> >& arguments) const;
+
+};
+
+
+class FunctionCallNode :
+    public ParentNode
+{
+    //std::string functionName;
+    std::shared_ptr<ExpressionNode> function;
+    std::vector<std::shared_ptr<ExpressionNode> > arguments;
+
+public:
+
+    FunctionCallNode(const FunctionNode* function);
+    FunctionCallNode(const FunctionNode* function,
                const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
-    virtual ~FunctionNode(void);
-    
+    virtual ~FunctionCallNode(void);
+
     void addArgument(const std::shared_ptr<ExpressionNode>& argument);
-    
+
     virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
-    
+
     virtual size_t getArgumentCount(void) const;
     virtual const std::shared_ptr<ExpressionNode>& getArgument(size_t i) const;
-    
+
     /*!
      * calculates the derivative in the i-th parameter
      */
     virtual std::shared_ptr<ExpressionNode> getDerivative(size_t i) const;
-    
+
     virtual bool equals(const ExpressionNode*) const;
 };
 
@@ -214,7 +224,7 @@ public:
     std::shared_ptr<ExpressionNode> a;
     std::shared_ptr<ExpressionNode> b;
 protected:
-    
+
     OperationNode(const std::shared_ptr<ExpressionNode>& a,
                   const std::shared_ptr<ExpressionNode>& b);
     virtual ~OperationNode(void);

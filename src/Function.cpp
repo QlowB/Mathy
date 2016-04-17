@@ -37,7 +37,7 @@ std::shared_ptr<ExpressionNode> Function::eval(
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const
 {
     // std::cout << "Function::eval\n";
-    return std::make_shared<FunctionNode> (this, args);
+    return std::make_shared<FunctionCallNode> (this, args);
     //return this;
 }
 
@@ -67,5 +67,5 @@ std::shared_ptr<ExpressionNode> Function::getDerivative(
         ind << i;
         derivFunc = new Function(name + "'(" + ind.str() + ")", argumentCount);
     }
-    return std::make_shared<FunctionNode>(derivFunc, args);
+    return std::make_shared<FunctionCallNode>(derivFunc, args);
 }

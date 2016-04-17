@@ -26,12 +26,14 @@
 #include <memory>
 #include <vector>
 
+#include "Node.h"
+
 typedef double FloatVal;
 
-class ExpressionNode;
 class Environment;
 
-class Function
+class Function :
+    ExpressionNode
 {
 protected:
     std::string name;
