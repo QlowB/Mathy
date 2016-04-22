@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "Environment.h"
+#include "Natives.h"
 
 const std::string& Symbol::getName(void) const
 {
@@ -62,6 +63,19 @@ FunctionParameter::FunctionParameter(int index) :
 int FunctionParameter::getIndex(void) const
 {
     return index;
+}
+
+
+Environment::Environment(void)
+{
+    VariableSymbol* vs = new VariableSymbol("cos",
+            std::make_shared<Cos>());
+    addSymbol(vs);
+}
+
+
+Environment::~Environment(void)
+{
 }
 
 

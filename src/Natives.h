@@ -26,7 +26,8 @@
 #include <unordered_map>
 #include <map>
 
-#include "Function.h"
+#include "Node.h"
+//#include "Function.h"
 
 class ExpressionNode;
 class Environment;
@@ -34,8 +35,8 @@ class Environment;
 class Constants
 {
     static std::map<std::string, std::shared_ptr<ExpressionNode> > constants;
-	static bool initialized;
-	static void initialize(void);
+    static bool initialized;
+    static void initialize(void);
 public:
     static void add(const std::string& name,
                     const std::shared_ptr<ExpressionNode>& value);
@@ -45,12 +46,14 @@ public:
 
 
 class NativeFunction :
-    public Function
+    public FunctionNode
 {
+    std::string name;
 public:
     NativeFunction(const std::string& name, size_t argumentCount);
     
-    //virtual const std::string& getName(void) const { return asa; }
+    virtual std::string getString(void) const { return getName(); }
+    inline const std::string& getName(void) const { return name; }
     /*virtual std::shared_ptr<ExpressionNode> eval(
         Environment* e,
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const;*/
@@ -58,7 +61,7 @@ public:
 
 
 class NativeNumFunction :
-	public NativeFunction
+    public NativeFunction
 {
 public:
     typedef double (*MathFunc)(double);
@@ -73,15 +76,17 @@ public:
 
     //virtual const std::string& getName(void) const;
 
+    /*
     virtual std::shared_ptr<ExpressionNode> eval(
             Environment* e,
             const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
-	
+    */
+
     FloatVal evaluate(FloatVal args) const;
 
     virtual std::shared_ptr<ExpressionNode> evaluate(
             Environment* e,
-            const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
+            const std::vector<std::shared_ptr<ExpressionNode> >& args);
 
     virtual std::shared_ptr<ExpressionNode> getDerivative(
             size_t i,
@@ -114,14 +119,14 @@ public:
 
 
 class DerivativeFunction :
-	public NativeFunction
+    public NativeFunction
 {
 public:
     DerivativeFunction(const std::string& name);
     virtual std::shared_ptr<ExpressionNode> eval(
             Environment* e,
             const std::vector<std::shared_ptr<ExpressionNode> >& args) const;
-	
+    
     virtual std::shared_ptr<ExpressionNode> getDerivative(
             Environment* e,std::shared_ptr<ExpressionNode> value,
             std::shared_ptr<ExpressionNode> variable) const;

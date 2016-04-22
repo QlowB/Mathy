@@ -5,7 +5,7 @@ LNFLAGS     :=
 YACC        := bison
 LEX         := flex
 
-OBJECTS     := Function.o main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o sys.o
+OBJECTS     := main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o sys.o
 EXECUTABLE  := mathy
 
 #bit32: CXXFLAGS += -m32

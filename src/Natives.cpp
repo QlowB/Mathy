@@ -51,8 +51,9 @@ void Constants::add(const std::string& name,
 
 
 NativeFunction::NativeFunction(const std::string& name, size_t argumentCount) :
-    Function(name, argumentCount)
+    name(name)
 {
+    // we do nothing with argumentCount, sorry...
 }
 
 
@@ -64,20 +65,22 @@ NativeNumFunction::NativeNumFunction(const std::string& name,
 }
 
 
+/*
 std::shared_ptr<ExpressionNode> NativeNumFunction::eval(Environment* e,
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const
 {
     std::shared_ptr<ExpressionNode> eval = args[0]->evaluate(e);
-    RealNode* real = dynamic_cast<RealNode*>(&*eval);
-    IntegerNode* intN = dynamic_cast<IntegerNode*>(&*eval);
+    RealNode* real = dynamic_cast<RealNode*>(eval.get());
+    IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
     
-    if (real != 0) {
+    if (real != nullptr) {
         FloatVal arg = 0;
         arg = real->getValue();
         return std::make_shared<RealNode> (evaluate(arg));
     }
     return evaluate(e, args);
 }
+*/
 
 
 FloatVal NativeNumFunction::evaluate(FloatVal arg) const
@@ -86,12 +89,20 @@ FloatVal NativeNumFunction::evaluate(FloatVal arg) const
 }
 
 
+
 std::shared_ptr<ExpressionNode> NativeNumFunction::evaluate(
         Environment* e,
-        const std::vector<std::shared_ptr<ExpressionNode> >& args) const
+        const std::vector<std::shared_ptr<ExpressionNode> >& args)
 {
-    return std::make_shared<FunctionNode>
-        (const_cast<Function*> (dynamic_cast<const Function*> (this)), args);
+    std::shared_ptr<ExpressionNode> eval = args[0]->evaluate(e);
+    RealNode* real = dynamic_cast<RealNode*>(eval.get());
+    IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
+    
+    if (real != nullptr) {
+        FloatVal arg = real->getValue();
+        return std::make_shared<RealNode> (evaluate(arg));
+    }
+    return shared_from_this();
 }
 
 
@@ -99,7 +110,7 @@ std::shared_ptr<ExpressionNode> NativeNumFunction::getDerivative(
         size_t i,
         const std::vector<std::shared_ptr<ExpressionNode> > &args) const
 {
-    return std::make_shared<FunctionNode> (derivative, args);
+    return std::make_shared<FunctionCallNode> (derivative->shared_from_this(), args);
 }
 
 
@@ -130,7 +141,7 @@ std::shared_ptr<ExpressionNode> Cos::getDerivative(
         const std::vector<std::shared_ptr<ExpressionNode> >& args) const
 {
     return std::make_shared<SubtractionNode>(std::make_shared<IntegerNode>(0),
-            std::make_shared<FunctionNode>(&Functions::sin, args));
+            std::make_shared<FunctionCallNode>(Functions::sin.shared_from_this(), args));
 }
 
 
@@ -233,7 +244,7 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
     if (pow != 0) {
         
         //std::cout << "POW begin\n";
-        static const Function* logfnc = &Functions::ln;
+        static const FunctionNode* logfnc = &Functions::ln;
         
         // d/dx (f(x) ^ g(x)) = f(x)^g(x) * (g(x)*f'(x)/f(x) + log(f(x))g'(x))
         std::shared_ptr<ExpressionNode> a = getDerivative(e, pow->a, variable);
@@ -243,9 +254,11 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
                 std::make_shared<MultiplicationNode>(pow->b, a);
         std::shared_ptr<DivisionNode> bruch =
                 std::make_shared<DivisionNode>(bastr, pow->a);
-        std::shared_ptr<FunctionNode> logFunc =
-                std::make_shared<FunctionNode>(logfnc);
-        logFunc->addArgument(pow->a);
+        std::shared_ptr<ExpressionNode> logFunc = Functions::ln.shared_from_this();
+        std::shared_ptr<FunctionCallNode> logFuncCall =
+                std::make_shared<FunctionCallNode>(logFunc,
+                std::vector<std::shared_ptr<ExpressionNode> >({pow->a}));
+        //logFunc->addArgument(pow->a);
         std::shared_ptr<MultiplicationNode> secondMul =
                 std::make_shared<MultiplicationNode>(logFunc, b);
         std::shared_ptr<AdditionNode> paranSum =
@@ -259,6 +272,7 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
         return expr;*/
     }
 
+#if 0
     FunctionNode* func = dynamic_cast<FunctionNode*>(&*value);
     if (func != 0) {
         // std::cout << "Function deriv\n";
@@ -290,6 +304,7 @@ std::shared_ptr<ExpressionNode> DerivativeFunction::getDerivative(
         }
         return final;
     }
+#endif
     std::cout << "found no derivative\n";
     return nullptr;
 }
@@ -349,7 +364,7 @@ void Functions::add(NativeFunction* value)
     using std::pair;
     using std::string;
     const std::string& name = value->getName();
-    size_t nArgs = value->getArgumentCount();
+    size_t nArgs = 0; //value->getArgumentCount();
     functions.insert(
         pair<pair<string, size_t>, NativeFunction*>(
             pair<string, size_t> (name, nArgs), value 

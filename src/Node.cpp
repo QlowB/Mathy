@@ -157,7 +157,7 @@ bool RealNode::equals(const ExpressionNode* other) const
 VariableNode::VariableNode(const std::string& name) :
     name(name)
 {
-    constant = Constants::getConstant(name);
+    //constant = Constants::getConstant(name);
 }
 
 
@@ -170,10 +170,8 @@ std::string VariableNode::getString(void) const
 std::shared_ptr<ExpressionNode> VariableNode::evaluate(Environment* e)
 {
     VariableSymbol* vs = 0;
-    if (!constant.expired())
-        return constant.lock();
-    else if ((vs = e->getVariable(name))) { // double parantheses because
-        return vs->getValue();              // compiler is a smartass otherwise
+    if ((vs = e->getVariable(name))) {      // double parantheses because
+        return vs->getValue()->evaluate(e); // compiler is a smartass otherwise
     }
     else
         return shared_from_this();
@@ -195,21 +193,54 @@ bool VariableNode::equals(const ExpressionNode* en) const
 }
 
 
-ParentNode::ParentNode(void)
+std::string FunctionNode::getString(void) const
 {
+    // TODO implement lambda notation output
+    if (equation.get() != nullptr)
+        return equation.get()->getString();
+    else
+        return "";
 }
 
 
-FunctionCallNode::FunctionCallNode(const Function* function) :
-    functionName(function->getName()), function(function)
+std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& arguments)
 {
+    return shared_from_this();
+}
+
+
+std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
+{
+    return shared_from_this();
+}
+
+
+std::shared_ptr<ExpressionNode> FunctionNode::getDerivative(size_t i) const
+{
+    return std::make_shared<FunctionNode>();
+}
+
+
+std::shared_ptr<ExpressionNode> FunctionNode::eval(Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& arguments) const
+{
+    return std::make_shared<FunctionNode>();
 }
 
 
 FunctionCallNode::FunctionCallNode(
-        const Function* function,
+        const std::shared_ptr<ExpressionNode>& function) :
+            function(function)
+{
+    printf("yess\n");
+}
+
+
+FunctionCallNode::FunctionCallNode(
+        const std::shared_ptr<ExpressionNode>& function,
         const std::vector<std::shared_ptr<ExpressionNode> >& arguments) :
-    functionName(function->getName()), function(function), arguments(arguments)
+    function(function), arguments(arguments)
 {
 }
 
@@ -222,13 +253,19 @@ FunctionCallNode::~FunctionCallNode(void)
 void FunctionCallNode::addArgument(const std::shared_ptr<ExpressionNode>& argument)
 {
     arguments.push_back(argument);
-    function = Functions::getNativeFunction(functionName, arguments.size());
+    //function = Functions::getNativeFunction(functionName, arguments.size());
 }
 
 
 std::string FunctionCallNode::getString(void) const
 {
-    std::string ret = functionName + "(";
+    std::string ret;
+    if (dynamic_cast<VariableNode*> (function.get()) != nullptr)
+        ret = function.get()->getString() + "(";
+    else
+        ret = "(" + function.get()->getString() + ")(";
+
+    //printf("chelloo: %d\n", arguments.size());
     for (size_t i = 0; i < arguments.size(); i++) {
         ret += arguments[i]->getString();
         if (i < arguments.size() - 1) {
@@ -239,28 +276,40 @@ std::string FunctionCallNode::getString(void) const
     return ret;
 }
 
+
 #include <iostream>
 std::shared_ptr<ExpressionNode> FunctionCallNode::evaluate(Environment* e)
 {
     //std::cout << "needs: " << function->getName() << "\n";
-    if (function != 0) {
-        std::shared_ptr<ExpressionNode> ev = function->eval(e, arguments);
-        if (ev != 0)
+    /*if (function.get() != nullptr) {
+        std::shared_ptr<ExpressionNode> ev = nullptr; // function->eval(e, arguments);
+        if (ev.get() != nullptr)
             return ev;
+    }*/
+    
+    std::shared_ptr<ExpressionNode> func = function.get()->evaluate(e);
+    std::shared_ptr<FunctionNode> realFunc =
+        std::dynamic_pointer_cast<FunctionNode> (func);
+
+    if (realFunc.get() != nullptr) {
+        return realFunc.get()->evaluate(e, arguments);
     }
-    
-    
+
     //std::shared_ptr<ExpressionNode> eval = arguments[0]->evaluate(e);
     //RealNode* real = dynamic_cast<RealNode*>(eval.get());
     //IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
-   
-    std::shared_ptr<FunctionCallNode> fn =
-            std::make_shared<FunctionCallNode>(function, arguments);
+
+    /*
+    std::vector<std::shared_ptr<ExpressionNode> > newArguments;
 
     for (size_t i = 0; i < arguments.size(); i++) {
         std::shared_ptr<ExpressionNode> en = arguments[i]->evaluate(e);
-        fn->addArgument(en);
-    }
+        newArguments.push_back(en);
+    }*/
+  
+    std::shared_ptr<FunctionCallNode> fn =
+            std::make_shared<FunctionCallNode>(func, arguments);
+
 
     return fn;
 }
@@ -272,7 +321,8 @@ size_t FunctionCallNode::getArgumentCount(void) const
 }
 
 
-const std::shared_ptr<ExpressionNode>& FunctionCallNode::getArgument(size_t i) const
+const std::shared_ptr<ExpressionNode>&
+FunctionCallNode::getArgument(size_t i) const
 {
     return arguments[i];
 }
@@ -284,7 +334,10 @@ std::shared_ptr<ExpressionNode> FunctionCallNode::getDerivative(size_t i) const
     //std::stringstream ind;
     //ind << i;
     std::shared_ptr<ExpressionNode> func =
-            function->getDerivative(i, arguments);
+            nullptr; //function->getDerivative(i);
+
+    std::cerr << "not yet implemented in " << __FILE__ << " at " << __LINE__ <<
+        std::endl;
 
     if (func != 0) {
         return func;
@@ -366,6 +419,11 @@ std::shared_ptr<ExpressionNode> AssignmentNode::evaluate(Environment* e)
 
     std::shared_ptr<VariableNode> var =
             std::dynamic_pointer_cast<VariableNode> (a);
+    
+    if (var.get()->equals(newValue.get()))
+        return shared_from_this();
+
+
     if (var) {
         const std::string varName = var->getString();
         VariableSymbol* vs = e->getVariable(varName);

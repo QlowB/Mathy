@@ -27,11 +27,12 @@
 #include <memory>
 #include <exception>
 
-#include "Natives.h"
+//#include "Natives.h"
 
 class ExpressionNode;
 class Environment;
 
+typedef double FloatVal;
 
 /*!
  * \brief base class for any object parsed
@@ -146,11 +147,8 @@ class VariableNode :
     public ExpressionNode
 {
     std::string name;
-
-    /*! if it's a constant */
-    std::weak_ptr<ExpressionNode> constant;
 public:
-    VariableNode(const std::string& value);
+    VariableNode(const std::string& name);
     
     /*!
      * \brief getString
@@ -167,7 +165,7 @@ class ParentNode :
     public virtual ExpressionNode
 {
 protected:
-    ParentNode(void);
+    ParentNode(void) = default;
 };
 
 
@@ -180,9 +178,17 @@ class FunctionNode :
 
 public:
 
-    virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::shared_ptr> >& arguments) const;
+    virtual std::string getString(void) const;
 
+    virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
+
+    virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+
+    virtual std::shared_ptr<ExpressionNode> getDerivative(size_t i) const;
+    virtual std::shared_ptr<ExpressionNode>
+        eval(Environment* e, const std::vector<std::shared_ptr
+                <ExpressionNode> >& arguments) const;
 };
 
 
@@ -195,8 +201,8 @@ class FunctionCallNode :
 
 public:
 
-    FunctionCallNode(const FunctionNode* function);
-    FunctionCallNode(const FunctionNode* function,
+    FunctionCallNode(const std::shared_ptr<ExpressionNode>& function);
+    FunctionCallNode(const std::shared_ptr<ExpressionNode>& function,
                const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
     virtual ~FunctionCallNode(void);
 

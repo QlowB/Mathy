@@ -82,7 +82,7 @@ union YYSTYPE
     IntegerNode* integerNode;
     RealNode* realNode;
     VariableNode* variableNode;
-    FunctionNode* functionNode;
+    FunctionCallNode* functionCallNode;
     
     OperationNode* operationNode;
     AdditionNode* additionNode;

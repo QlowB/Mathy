@@ -57,7 +57,7 @@ using sp = std::shared_ptr<T>;
     IntegerNode* integerNode;
     RealNode* realNode;
     VariableNode* variableNode;
-    FunctionNode* functionNode;
+    FunctionCallNode* functionCallNode;
     
     OperationNode* operationNode;
     AdditionNode* additionNode;
@@ -91,7 +91,7 @@ using sp = std::shared_ptr<T>;
 %type <integerNode> integerConst
 %type <realNode> realConst
 %type <variableNode> variable
-%type <functionNode> function
+%type <functionCallNode> functionCall
 %type <expressionList> expressionList
 
 %type <operationNode> operation
@@ -123,7 +123,7 @@ expression:
         $$ = $1;
     }
     |
-    function {
+    functionCall {
         $$ = $1;
     }
     |
@@ -203,17 +203,16 @@ expressionList:
         $1->push_back(std::shared_ptr<ExpressionNode>($3));
     };
 
-function:
-    TOKEN_IDENTIFIER TOKEN_LPAREN expressionList TOKEN_RPAREN {
-        Function* func = Functions::getNativeFunction(*$1, $3->size());
+functionCall:
+    expression TOKEN_LPAREN expressionList TOKEN_RPAREN {
+        /*Function* func = Functions::getNativeFunction(*$1, $3->size());
         if (func == 0) {
             std::cout << "no function " << *$1 << " with " << $3->size() << " arguments.\n";
             func = new Function(*$1, $3->size());
-        }
-        $$ = new FunctionNode(func, *$3);
-        delete $1;
+        }*/
+        $$ = new FunctionCallNode(std::shared_ptr<ExpressionNode>($1), *$3);
+        //printf("helloooo: %d\n", $$->getArgumentCount());
         delete $3;
-        $1 = 0;
         $3 = 0;
     };
 

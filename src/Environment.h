@@ -54,6 +54,7 @@ class FunctionParameter : public ExpressionNode
 {
     int index;
 public:
+
     FunctionParameter(int index);
     int getIndex(void) const;
 };
@@ -75,7 +76,8 @@ class Environment
     std::vector<Symbol*> symbols;
 public:
 
-    Environment(void) = default;
+    Environment(void);
+    ~Environment(void);
 
     std::shared_ptr<ExpressionNode> evaluateExpression(
             const std::shared_ptr<ExpressionNode>& expr);
