@@ -58,6 +58,7 @@ using sp = std::shared_ptr<T>;
     RealNode* realNode;
     VariableNode* variableNode;
     FunctionCallNode* functionCallNode;
+    FunctionNode* functionNode;
     
     OperationNode* operationNode;
     AdditionNode* additionNode;
@@ -65,6 +66,7 @@ using sp = std::shared_ptr<T>;
 
     AssignmentNode* assignmentNode;
     
+    std::vector<std::shared_ptr<VariableNode> >* lambdaArguments;
     std::vector<std::shared_ptr<ExpressionNode> >* expressionList;
     
     int token;
@@ -81,6 +83,7 @@ using sp = std::shared_ptr<T>;
 %token <token> TOKEN_NEWLINE
 %token <token> TOKEN_LPAREN TOKEN_RPAREN TOKEN_LBRACE TOKEN_RBRACE TOKEN_COMMA
 %token <token> TOKEN_DOT TOKEN_COLON
+%token <token> TOKEN_BACKSLASH TOKEN_ARROW
 %token <string> TOKEN_OPERATOR
 
 /*
@@ -92,7 +95,9 @@ using sp = std::shared_ptr<T>;
 %type <realNode> realConst
 %type <variableNode> variable
 %type <functionCallNode> functionCall
+%type <functionNode> lambdaExpression
 %type <expressionList> expressionList
+%type <lambdaArguments> lambdaArguments
 
 %type <operationNode> operation
 %type <operationNode> addition subtraction multiplication modulo division power
@@ -144,6 +149,10 @@ expression:
             std::make_shared<IntegerNode>(0),
             std::shared_ptr<ExpressionNode>($2)
         );
+    }
+    |
+    lambdaExpression {
+        $$ = $1;
     }
     |
     statement {
@@ -213,7 +222,24 @@ functionCall:
         $$ = new FunctionCallNode(std::shared_ptr<ExpressionNode>($1), *$3);
         //printf("helloooo: %d\n", $$->getArgumentCount());
         delete $3;
-        $3 = 0;
+        $3 = nullptr;
+    };
+
+lambdaExpression:
+    lambdaArguments TOKEN_ARROW expression {
+        $$ = new FunctionNode(*$1, std::shared_ptr<ExpressionNode> ($3));
+        delete $1; $1 = nullptr;
+    };
+
+lambdaArguments:
+    TOKEN_BACKSLASH variable {
+        $$ = new std::vector<std::shared_ptr<VariableNode> >();
+        $$->push_back(std::shared_ptr<VariableNode> ($2));
+    }
+    |
+    lambdaArguments variable {
+        $1->push_back(std::shared_ptr<VariableNode> ($2));
+        $$ = $1;
     };
 
 operation:

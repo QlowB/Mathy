@@ -49,6 +49,9 @@ extern void yyerror(const char *s);
 "%"                     return TOKEN(TOKEN_MOD);
 ":="                    return TOKEN(TOKEN_ASSIGNMENT);
 
+"\\"                    return TOKEN(TOKEN_BACKSLASH);
+"->"                    return TOKEN(TOKEN_ARROW);
+
 "("                     return TOKEN(TOKEN_LPAREN);
 ")"                     return TOKEN(TOKEN_RPAREN);
 "{"                     return TOKEN(TOKEN_LBRACE);

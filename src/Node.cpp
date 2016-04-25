@@ -28,6 +28,7 @@
 
 #include "Environment.h"
 #include "Natives.h"
+#include "Rewriter.h"
 
 
 ExpressionNode::~ExpressionNode(void)
@@ -42,6 +43,13 @@ std::shared_ptr<ExpressionNode> ExpressionNode::evaluate(Environment*)
 
 
 std::shared_ptr<ExpressionNode> ExpressionNode::basicSimplify(Environment*)
+{
+    return shared_from_this();
+}
+
+
+std::shared_ptr<ExpressionNode> ExpressionNode::substitute(
+        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
 {
     return shared_from_this();
 }
@@ -178,6 +186,19 @@ std::shared_ptr<ExpressionNode> VariableNode::evaluate(Environment* e)
 }
 
 
+std::shared_ptr<ExpressionNode> VariableNode::substitute(
+        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+{
+    for (auto i = rules.begin(); i != rules.end(); i++) {
+        SubstituteRule& sr = *i->get();
+        if (sr.find.lock().get()->getString() == name) {
+            return sr.replace;
+        }
+    }
+    return shared_from_this();
+}
+
+
 bool VariableNode::equals(const ExpressionNode* en) const
 {
     if (ExpressionNode::equals(en))
@@ -195,23 +216,50 @@ bool VariableNode::equals(const ExpressionNode* en) const
 
 std::string FunctionNode::getString(void) const
 {
+    //printf("FunctionNode::getString()\n");
     // TODO implement lambda notation output
+    std::string out = "(\\";
+    for (auto i = argumentNames.begin(); i != argumentNames.end(); i++) {
+        out += i->get()->getString();
+        if ((i + 1) != argumentNames.end())
+            out += " ";
+    }
+    out += " -> ";
     if (equation.get() != nullptr)
-        return equation.get()->getString();
-    else
-        return "";
+        out += equation.get()->getString();
+    else {
+        out += "[built in]";
+    }
+    return out + ")";
 }
 
 
 std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e,
         const std::vector<std::shared_ptr<ExpressionNode> >& arguments)
 {
-    return shared_from_this();
+    if (argumentNames.size() != arguments.size()) {
+        throw RuntimeException("cannot apply function");
+    }
+
+    std::vector<std::unique_ptr<SubstituteRule> > rules;
+    for (size_t i = 0; i < argumentNames.size(); i++) {
+        rules.push_back(std::unique_ptr<SubstituteRule>
+                (new SubstituteRule(argumentNames[i], arguments[i])));
+    }
+    return equation.get()->substitute(rules)->evaluate(e);
 }
 
 
 std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
 {
+    return shared_from_this();
+}
+
+
+std::shared_ptr<ExpressionNode> FunctionNode::substitute(
+        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+{
+    // TODO: implement function substitution
     return shared_from_this();
 }
 
@@ -328,6 +376,20 @@ FunctionCallNode::getArgument(size_t i) const
 }
 
 
+std::shared_ptr<ExpressionNode> FunctionCallNode::substitute(
+        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+{
+    std::vector<std::shared_ptr<ExpressionNode> > newArguments;
+    for (size_t i = 0; i < arguments.size(); i++) {
+        newArguments.push_back(arguments[i].get()->substitute(rules));
+    }
+
+    std::shared_ptr<ExpressionNode> newFunc = std::make_shared<FunctionCallNode>
+        (function.get()->substitute(rules), newArguments);
+    return newFunc;
+}
+
+
 #include <iostream>
 std::shared_ptr<ExpressionNode> FunctionCallNode::getDerivative(size_t i) const
 {
@@ -394,6 +456,16 @@ std::string OperationNode::getString(void) const
 }
 
 
+std::shared_ptr<ExpressionNode> OperationNode::substitute(
+        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+{
+    std::shared_ptr<OperationNode> ret = clone();
+    ret.get()->a = ret.get()->a.get()->substitute(rules);
+    ret.get()->b = ret.get()->b.get()->substitute(rules);
+    return ret;
+}
+
+
 AssignmentNode::AssignmentNode(const std::shared_ptr<ExpressionNode>& a,
                                const std::shared_ptr<ExpressionNode>& b) :
     OperationNode(a, b)
@@ -436,6 +508,12 @@ std::shared_ptr<ExpressionNode> AssignmentNode::evaluate(Environment* e)
         throw ArithmeticException("left side of assignment must be a variable");
     }
     return std::make_shared<AssignmentNode> (a, newValue);
+}
+
+
+std::shared_ptr<OperationNode> AssignmentNode::clone(void) const
+{
+return std::make_shared<AssignmentNode>(a, b);
 }
 
 
@@ -494,6 +572,12 @@ std::shared_ptr<ExpressionNode> AdditionNode::evaluate(Environment* e)
         
         return std::make_shared<AdditionNode>(left, right);
     }
+}
+
+
+std::shared_ptr<OperationNode> AdditionNode::clone(void) const
+{
+    return std::make_shared<AdditionNode>(a, b);
 }
 
 
@@ -567,6 +651,12 @@ std::shared_ptr<ExpressionNode> SubtractionNode::evaluate(Environment* e)
         }
         return std::make_shared<SubtractionNode> (left, right);
     }
+}
+
+
+std::shared_ptr<OperationNode> SubtractionNode::clone(void) const
+{
+    return std::make_shared<SubtractionNode>(a, b);
 }
 
 
@@ -657,6 +747,12 @@ std::shared_ptr<ExpressionNode> MultiplicationNode::evaluate(Environment* e)
 }
 
 
+std::shared_ptr<OperationNode> MultiplicationNode::clone(void) const
+{
+    return std::make_shared<MultiplicationNode>(a, b);
+}
+
+
 ModuloNode::ModuloNode(const std::shared_ptr<ExpressionNode>& a,
                        const std::shared_ptr<ExpressionNode>& b) :
     MultDivMod(a, b)
@@ -692,6 +788,13 @@ std::shared_ptr<ExpressionNode> ModuloNode::evaluate(Environment* e)
         return std::make_shared<ModuloNode>(left, right);
     }
 }
+
+
+std::shared_ptr<OperationNode> ModuloNode::clone(void) const
+{
+    return std::make_shared<ModuloNode>(a, b);
+}
+
 
 
 DivisionNode::DivisionNode(const std::shared_ptr<ExpressionNode>& a,
@@ -740,6 +843,12 @@ std::shared_ptr<ExpressionNode> DivisionNode::evaluate(Environment* e)
     } else {
         return std::make_shared<DivisionNode>(left, right);
     }
+}
+
+
+std::shared_ptr<OperationNode> DivisionNode::clone(void) const
+{
+    return std::make_shared<DivisionNode>(a, b);
 }
 
 
@@ -824,6 +933,12 @@ std::shared_ptr<ExpressionNode> PowerNode::evaluate(Environment* e)
         }
         return std::make_shared<PowerNode>(left, right);
     }
+}
+
+
+std::shared_ptr<OperationNode> PowerNode::clone(void) const
+{
+    return std::make_shared<PowerNode>(a, b);
 }
 
 

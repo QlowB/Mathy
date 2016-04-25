@@ -57,14 +57,16 @@ extern int yydebug;
     TOKEN_COMMA = 267,
     TOKEN_DOT = 268,
     TOKEN_COLON = 269,
-    TOKEN_OPERATOR = 270,
-    TOKEN_ASSIGNMENT = 271,
-    TOKEN_PLUS = 272,
-    TOKEN_MINUS = 273,
-    TOKEN_MUL = 274,
-    TOKEN_DIV = 275,
-    TOKEN_MOD = 276,
-    TOKEN_POW = 277
+    TOKEN_BACKSLASH = 270,
+    TOKEN_ARROW = 271,
+    TOKEN_OPERATOR = 272,
+    TOKEN_ASSIGNMENT = 273,
+    TOKEN_PLUS = 274,
+    TOKEN_MINUS = 275,
+    TOKEN_MUL = 276,
+    TOKEN_DIV = 277,
+    TOKEN_MOD = 278,
+    TOKEN_POW = 279
   };
 #endif
 
@@ -83,6 +85,7 @@ union YYSTYPE
     RealNode* realNode;
     VariableNode* variableNode;
     FunctionCallNode* functionCallNode;
+    FunctionNode* functionNode;
     
     OperationNode* operationNode;
     AdditionNode* additionNode;
@@ -90,12 +93,13 @@ union YYSTYPE
 
     AssignmentNode* assignmentNode;
     
+    std::vector<std::shared_ptr<VariableNode> >* lambdaArguments;
     std::vector<std::shared_ptr<ExpressionNode> >* expressionList;
     
     int token;
     std::string* string;
 
-#line 99 "parser.h" /* yacc.c:1915  */
+#line 103 "parser.h" /* yacc.c:1915  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

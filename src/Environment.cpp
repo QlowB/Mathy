@@ -71,6 +71,10 @@ Environment::Environment(void)
     VariableSymbol* vs = new VariableSymbol("cos",
             std::make_shared<Cos>());
     addSymbol(vs);
+    
+    vs = new VariableSymbol("if",
+            std::make_shared<If>());
+    addSymbol(vs);
 }
 
 

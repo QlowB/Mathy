@@ -60,6 +60,18 @@ public:
 };
 
 
+class If :
+    public NativeFunction
+{
+public:
+    inline If(void) : NativeFunction("if", 3) {}
+
+    virtual std::shared_ptr<ExpressionNode> evaluate(
+            Environment* e,
+            const std::vector<std::shared_ptr<ExpressionNode> >& args);
+};
+
+
 class NativeNumFunction :
     public NativeFunction
 {

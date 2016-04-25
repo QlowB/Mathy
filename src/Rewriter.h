@@ -27,6 +27,24 @@
 
 #include "Node.h"
 
+
+struct SubstituteRule
+{
+    std::weak_ptr<VariableNode> find;
+    std::shared_ptr<ExpressionNode> replace;
+
+    inline SubstituteRule(const std::weak_ptr<VariableNode>& find,
+                          const std::shared_ptr<ExpressionNode>& replace) :
+        find(find),
+        replace(replace)
+    {}
+};
+
+
+// ==============
+// == OLD PART ==
+// ==============
+
 class AnyValue
 {
 protected:

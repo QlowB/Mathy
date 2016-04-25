@@ -135,14 +135,16 @@ extern int yydebug;
     TOKEN_COMMA = 267,
     TOKEN_DOT = 268,
     TOKEN_COLON = 269,
-    TOKEN_OPERATOR = 270,
-    TOKEN_ASSIGNMENT = 271,
-    TOKEN_PLUS = 272,
-    TOKEN_MINUS = 273,
-    TOKEN_MUL = 274,
-    TOKEN_DIV = 275,
-    TOKEN_MOD = 276,
-    TOKEN_POW = 277
+    TOKEN_BACKSLASH = 270,
+    TOKEN_ARROW = 271,
+    TOKEN_OPERATOR = 272,
+    TOKEN_ASSIGNMENT = 273,
+    TOKEN_PLUS = 274,
+    TOKEN_MINUS = 275,
+    TOKEN_MUL = 276,
+    TOKEN_DIV = 277,
+    TOKEN_MOD = 278,
+    TOKEN_POW = 279
   };
 #endif
 
@@ -161,6 +163,7 @@ union YYSTYPE
     RealNode* realNode;
     VariableNode* variableNode;
     FunctionCallNode* functionCallNode;
+    FunctionNode* functionNode;
     
     OperationNode* operationNode;
     AdditionNode* additionNode;
@@ -168,12 +171,13 @@ union YYSTYPE
 
     AssignmentNode* assignmentNode;
     
+    std::vector<std::shared_ptr<VariableNode> >* lambdaArguments;
     std::vector<std::shared_ptr<ExpressionNode> >* expressionList;
     
     int token;
     std::string* string;
 
-#line 177 "parser.cpp" /* yacc.c:355  */
+#line 181 "parser.cpp" /* yacc.c:355  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
@@ -188,7 +192,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 192 "parser.cpp" /* yacc.c:358  */
+#line 196 "parser.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -409,23 +413,23 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  25
+#define YYFINAL  29
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   70
+#define YYLAST   79
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  23
+#define YYNTOKENS  25
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  19
+#define YYNNTS  21
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  33
+#define YYNRULES  37
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  47
+#define YYNSTATES  54
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   277
+#define YYMAXUTOK   279
 
 #define YYTRANSLATE(YYX)                                                \
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -461,17 +465,17 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,    21,    22
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   113,   113,   117,   122,   126,   130,   134,   138,   142,
-     149,   154,   159,   167,   171,   176,   183,   190,   197,   202,
-     207,   220,   224,   228,   232,   236,   240,   245,   253,   261,
-     269,   277,   285,   293
+       0,   118,   118,   122,   127,   131,   135,   139,   143,   147,
+     154,   158,   163,   168,   176,   180,   185,   192,   199,   206,
+     211,   216,   229,   235,   240,   246,   250,   254,   258,   262,
+     266,   271,   279,   287,   295,   303,   311,   319
 };
 #endif
 
@@ -483,12 +487,14 @@ static const char *const yytname[] =
   "$end", "error", "$undefined", "TOKEN_IDENTIFIER", "TOKEN_INTEGER",
   "TOKEN_REAL", "TOKEN_ERROR", "TOKEN_NEWLINE", "TOKEN_LPAREN",
   "TOKEN_RPAREN", "TOKEN_LBRACE", "TOKEN_RBRACE", "TOKEN_COMMA",
-  "TOKEN_DOT", "TOKEN_COLON", "TOKEN_OPERATOR", "TOKEN_ASSIGNMENT",
-  "TOKEN_PLUS", "TOKEN_MINUS", "TOKEN_MUL", "TOKEN_DIV", "TOKEN_MOD",
-  "TOKEN_POW", "$accept", "oneExpression", "expression", "statement",
-  "assignment", "constant", "variable", "integerConst", "realConst",
-  "expressionList", "functionCall", "operation", "addition", "subtraction",
-  "multiplication", "modulo", "division", "power", "parenthExpr", YY_NULL
+  "TOKEN_DOT", "TOKEN_COLON", "TOKEN_BACKSLASH", "TOKEN_ARROW",
+  "TOKEN_OPERATOR", "TOKEN_ASSIGNMENT", "TOKEN_PLUS", "TOKEN_MINUS",
+  "TOKEN_MUL", "TOKEN_DIV", "TOKEN_MOD", "TOKEN_POW", "$accept",
+  "oneExpression", "expression", "statement", "assignment", "constant",
+  "variable", "integerConst", "realConst", "expressionList",
+  "functionCall", "lambdaExpression", "lambdaArguments", "operation",
+  "addition", "subtraction", "multiplication", "modulo", "division",
+  "power", "parenthExpr", YY_NULL
 };
 #endif
 
@@ -499,14 +505,14 @@ static const yytype_uint16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276,   277
+     275,   276,   277,   278,   279
 };
 # endif
 
-#define YYPACT_NINF -5
+#define YYPACT_NINF -8
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-5)))
+  (!!((Yystate) == (-8)))
 
 #define YYTABLE_NINF -1
 
@@ -517,11 +523,12 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -1,    -5,    -5,    -5,    -1,    -1,     5,    41,    -5,    -5,
-      -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,
-      -5,    -5,    -5,    26,    11,    -5,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    -5,    41,     0,    48,    11,    11,
-      -2,    -2,    -2,     2,    -5,    -1,    41
+       0,    -8,    -8,    -8,     0,     8,     0,    12,    38,    -8,
+      -8,    -8,    -8,    -8,    -8,    -8,    -8,     3,    -8,    -8,
+      -8,    -8,    -8,    -8,    -8,    -8,    31,    -8,     1,    -8,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    -8,
+      -8,    38,    -2,    55,     1,     1,    -7,    -7,    -7,     5,
+      38,    -8,     0,    38
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -529,25 +536,28 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       3,    15,    16,    17,     0,     0,     0,     2,    10,    11,
-       4,     8,    13,    14,     5,     6,    21,    22,    23,    24,
-      25,    26,     7,     0,     9,     1,     0,     0,     0,     0,
-       0,     0,     0,     0,    33,    18,     0,    12,    27,    28,
-      29,    31,    30,    32,    20,     0,    19
+       3,    16,    17,    18,     0,     0,     0,     0,     2,    11,
+      12,     4,     8,    14,    15,     5,    10,     0,     6,    25,
+      26,    27,    28,    29,    30,     7,     0,    23,     9,     1,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    24,
+      37,    19,     0,    13,    31,    32,    33,    35,    34,    36,
+      22,    21,     0,    20
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -5,    -5,    -4,    -5,    -5,    -5,    -5,    -5,    -5,    -5,
-      -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5,    -5
+      -8,    -8,    -4,    -8,    -8,    -8,    30,    -8,    -8,    -8,
+      -8,    -8,    -8,    -8,    -8,    -8,    -8,    -8,    -8,    -8,
+      -8
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     6,     7,     8,     9,    10,    11,    12,    13,    36,
-      14,    15,    16,    17,    18,    19,    20,    21,    22
+      -1,     7,     8,     9,    10,    11,    12,    13,    14,    42,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -555,55 +565,56 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      23,    24,     1,     2,     3,    25,    26,     4,     0,    44,
-      26,     0,    45,     0,     0,     0,     0,     5,     0,    26,
-      33,     0,    35,    37,    38,    39,    40,    41,    42,    43,
-      30,    31,    32,    33,    26,    34,     0,     0,     0,     0,
-       0,    46,    27,    28,    29,    30,    31,    32,    33,    26,
-       0,     0,     0,     0,     0,     0,    26,    27,    28,    29,
-      30,    31,    32,    33,    -1,    28,    29,    30,    31,    32,
-      33
+      26,    30,    28,     1,     2,     3,     1,    51,     4,    30,
+      52,     1,    29,    30,     0,     5,     0,    37,     0,    38,
+       6,     0,    34,    35,    36,    37,    41,    43,    44,    45,
+      46,    47,    48,    49,    50,    27,     0,     0,     0,    30,
+      40,     0,     0,     0,     0,     0,    30,    39,    53,    31,
+      32,    33,    34,    35,    36,    37,    31,    32,    33,    34,
+      35,    36,    37,    30,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,    -1,    32,    33,    34,    35,    36,    37
 };
 
 static const yytype_int8 yycheck[] =
 {
-       4,     5,     3,     4,     5,     0,     8,     8,    -1,     9,
-       8,    -1,    12,    -1,    -1,    -1,    -1,    18,    -1,     8,
-      22,    -1,    26,    27,    28,    29,    30,    31,    32,    33,
-      19,    20,    21,    22,     8,     9,    -1,    -1,    -1,    -1,
-      -1,    45,    16,    17,    18,    19,    20,    21,    22,     8,
-      -1,    -1,    -1,    -1,    -1,    -1,     8,    16,    17,    18,
-      19,    20,    21,    22,    16,    17,    18,    19,    20,    21,
-      22
+       4,     8,     6,     3,     4,     5,     3,     9,     8,     8,
+      12,     3,     0,     8,    -1,    15,    -1,    24,    -1,    16,
+      20,    -1,    21,    22,    23,    24,    30,    31,    32,    33,
+      34,    35,    36,    37,    38,     5,    -1,    -1,    -1,     8,
+       9,    -1,    -1,    -1,    -1,    -1,     8,    17,    52,    18,
+      19,    20,    21,    22,    23,    24,    18,    19,    20,    21,
+      22,    23,    24,     8,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    18,    19,    20,    21,    22,    23,    24
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,     3,     4,     5,     8,    18,    24,    25,    26,    27,
-      28,    29,    30,    31,    33,    34,    35,    36,    37,    38,
-      39,    40,    41,    25,    25,     0,     8,    16,    17,    18,
-      19,    20,    21,    22,     9,    25,    32,    25,    25,    25,
-      25,    25,    25,    25,     9,    12,    25
+       0,     3,     4,     5,     8,    15,    20,    26,    27,    28,
+      29,    30,    31,    32,    33,    35,    36,    37,    38,    39,
+      40,    41,    42,    43,    44,    45,    27,    31,    27,     0,
+       8,    18,    19,    20,    21,    22,    23,    24,    16,    31,
+       9,    27,    34,    27,    27,    27,    27,    27,    27,    27,
+      27,     9,    12,    27
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_uint8 yyr1[] =
 {
-       0,    23,    24,    24,    25,    25,    25,    25,    25,    25,
-      25,    26,    27,    28,    28,    29,    30,    31,    32,    32,
-      33,    34,    34,    34,    34,    34,    34,    35,    36,    37,
-      38,    39,    40,    41
+       0,    25,    26,    26,    27,    27,    27,    27,    27,    27,
+      27,    27,    28,    29,    30,    30,    31,    32,    33,    34,
+      34,    35,    36,    37,    37,    38,    38,    38,    38,    38,
+      38,    39,    40,    41,    42,    43,    44,    45
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     0,     1,     1,     1,     1,     1,     2,
-       1,     1,     3,     1,     1,     1,     1,     1,     1,     3,
-       4,     1,     1,     1,     1,     1,     1,     3,     3,     3,
-       3,     3,     3,     3
+       1,     1,     1,     3,     1,     1,     1,     1,     1,     1,
+       3,     4,     3,     2,     2,     1,     1,     1,     1,     1,
+       1,     3,     3,     3,     3,     3,     3,     3
 };
 
 
@@ -1280,157 +1291,165 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 113 "parser.y" /* yacc.c:1661  */
+#line 118 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
         expr = std::shared_ptr<ExpressionNode>((yyval.expressionNode));
     }
-#line 1289 "parser.cpp" /* yacc.c:1661  */
+#line 1300 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 4:
-#line 122 "parser.y" /* yacc.c:1661  */
+#line 127 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].constantNode);
     }
-#line 1297 "parser.cpp" /* yacc.c:1661  */
+#line 1308 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 5:
-#line 126 "parser.y" /* yacc.c:1661  */
+#line 131 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].functionCallNode);
     }
-#line 1305 "parser.cpp" /* yacc.c:1661  */
+#line 1316 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 6:
-#line 130 "parser.y" /* yacc.c:1661  */
+#line 135 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].operationNode);
     }
-#line 1313 "parser.cpp" /* yacc.c:1661  */
+#line 1324 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 7:
-#line 134 "parser.y" /* yacc.c:1661  */
+#line 139 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].expressionNode);
     }
-#line 1321 "parser.cpp" /* yacc.c:1661  */
+#line 1332 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 8:
-#line 138 "parser.y" /* yacc.c:1661  */
+#line 143 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[0].variableNode);
     }
-#line 1329 "parser.cpp" /* yacc.c:1661  */
+#line 1340 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 9:
-#line 142 "parser.y" /* yacc.c:1661  */
+#line 147 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = new SubtractionNode(
             std::make_shared<IntegerNode>(0),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1340 "parser.cpp" /* yacc.c:1661  */
+#line 1351 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 10:
-#line 149 "parser.y" /* yacc.c:1661  */
+#line 154 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.expressionNode) = (yyvsp[0].statementNode);
+        (yyval.expressionNode) = (yyvsp[0].functionNode);
     }
-#line 1348 "parser.cpp" /* yacc.c:1661  */
+#line 1359 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 11:
-#line 154 "parser.y" /* yacc.c:1661  */
+#line 158 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.statementNode) = (yyvsp[0].assignmentNode);
+        (yyval.expressionNode) = (yyvsp[0].statementNode);
     }
-#line 1356 "parser.cpp" /* yacc.c:1661  */
+#line 1367 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 12:
-#line 159 "parser.y" /* yacc.c:1661  */
+#line 163 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.statementNode) = (yyvsp[0].assignmentNode);
+    }
+#line 1375 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 13:
+#line 168 "parser.y" /* yacc.c:1661  */
     {
         (yyval.assignmentNode) = new AssignmentNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1367 "parser.cpp" /* yacc.c:1661  */
-    break;
-
-  case 13:
-#line 167 "parser.y" /* yacc.c:1661  */
-    {
-        (yyval.constantNode) = (yyvsp[0].integerNode);
-    }
-#line 1375 "parser.cpp" /* yacc.c:1661  */
+#line 1386 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 14:
-#line 171 "parser.y" /* yacc.c:1661  */
+#line 176 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.constantNode) = (yyvsp[0].realNode);
+        (yyval.constantNode) = (yyvsp[0].integerNode);
     }
-#line 1383 "parser.cpp" /* yacc.c:1661  */
+#line 1394 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 15:
-#line 176 "parser.y" /* yacc.c:1661  */
+#line 180 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.constantNode) = (yyvsp[0].realNode);
+    }
+#line 1402 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 16:
+#line 185 "parser.y" /* yacc.c:1661  */
     {
         (yyval.variableNode) = new VariableNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1393 "parser.cpp" /* yacc.c:1661  */
+#line 1412 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 16:
-#line 183 "parser.y" /* yacc.c:1661  */
+  case 17:
+#line 192 "parser.y" /* yacc.c:1661  */
     {
         (yyval.integerNode) = new IntegerNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1403 "parser.cpp" /* yacc.c:1661  */
+#line 1422 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 17:
-#line 190 "parser.y" /* yacc.c:1661  */
+  case 18:
+#line 199 "parser.y" /* yacc.c:1661  */
     {
         (yyval.realNode) = new RealNode(*(yyvsp[0].string));
         delete (yyvsp[0].string);
         (yyvsp[0].string) = 0;
     }
-#line 1413 "parser.cpp" /* yacc.c:1661  */
+#line 1432 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 18:
-#line 197 "parser.y" /* yacc.c:1661  */
+  case 19:
+#line 206 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionList) = new std::vector<std::shared_ptr<ExpressionNode> >();
         (yyval.expressionList)->push_back(std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode)));
     }
-#line 1422 "parser.cpp" /* yacc.c:1661  */
-    break;
-
-  case 19:
-#line 202 "parser.y" /* yacc.c:1661  */
-    {
-        (yyvsp[-2].expressionList)->push_back(std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode)));
-    }
-#line 1430 "parser.cpp" /* yacc.c:1661  */
+#line 1441 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 20:
-#line 207 "parser.y" /* yacc.c:1661  */
+#line 211 "parser.y" /* yacc.c:1661  */
+    {
+        (yyvsp[-2].expressionList)->push_back(std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode)));
+    }
+#line 1449 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 21:
+#line 216 "parser.y" /* yacc.c:1661  */
     {
         /*Function* func = Functions::getNativeFunction(*$1, $3->size());
         if (func == 0) {
@@ -1440,135 +1459,162 @@ yyreduce:
         (yyval.functionCallNode) = new FunctionCallNode(std::shared_ptr<ExpressionNode>((yyvsp[-3].expressionNode)), *(yyvsp[-1].expressionList));
         //printf("helloooo: %d\n", $$->getArgumentCount());
         delete (yyvsp[-1].expressionList);
-        (yyvsp[-1].expressionList) = 0;
+        (yyvsp[-1].expressionList) = nullptr;
     }
-#line 1446 "parser.cpp" /* yacc.c:1661  */
-    break;
-
-  case 21:
-#line 220 "parser.y" /* yacc.c:1661  */
-    {
-        (yyval.operationNode) = (yyvsp[0].operationNode);
-    }
-#line 1454 "parser.cpp" /* yacc.c:1661  */
+#line 1465 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 22:
-#line 224 "parser.y" /* yacc.c:1661  */
+#line 229 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.operationNode) = (yyvsp[0].operationNode);
+        (yyval.functionNode) = new FunctionNode(*(yyvsp[-2].lambdaArguments), std::shared_ptr<ExpressionNode> ((yyvsp[0].expressionNode)));
+        delete (yyvsp[-2].lambdaArguments); (yyvsp[-2].lambdaArguments) = nullptr;
     }
-#line 1462 "parser.cpp" /* yacc.c:1661  */
+#line 1474 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 23:
-#line 228 "parser.y" /* yacc.c:1661  */
+#line 235 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.operationNode) = (yyvsp[0].operationNode);
+        (yyval.lambdaArguments) = new std::vector<std::shared_ptr<VariableNode> >();
+        (yyval.lambdaArguments)->push_back(std::shared_ptr<VariableNode> ((yyvsp[0].variableNode)));
     }
-#line 1470 "parser.cpp" /* yacc.c:1661  */
+#line 1483 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 24:
-#line 232 "parser.y" /* yacc.c:1661  */
+#line 240 "parser.y" /* yacc.c:1661  */
     {
-        (yyval.operationNode) = (yyvsp[0].operationNode);
+        (yyvsp[-1].lambdaArguments)->push_back(std::shared_ptr<VariableNode> ((yyvsp[0].variableNode)));
+        (yyval.lambdaArguments) = (yyvsp[-1].lambdaArguments);
     }
-#line 1478 "parser.cpp" /* yacc.c:1661  */
+#line 1492 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 25:
-#line 236 "parser.y" /* yacc.c:1661  */
+#line 246 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1486 "parser.cpp" /* yacc.c:1661  */
+#line 1500 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 26:
-#line 240 "parser.y" /* yacc.c:1661  */
+#line 250 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = (yyvsp[0].operationNode);
     }
-#line 1494 "parser.cpp" /* yacc.c:1661  */
+#line 1508 "parser.cpp" /* yacc.c:1661  */
     break;
 
   case 27:
-#line 245 "parser.y" /* yacc.c:1661  */
+#line 254 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.operationNode) = (yyvsp[0].operationNode);
+    }
+#line 1516 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 28:
+#line 258 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.operationNode) = (yyvsp[0].operationNode);
+    }
+#line 1524 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 29:
+#line 262 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.operationNode) = (yyvsp[0].operationNode);
+    }
+#line 1532 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 30:
+#line 266 "parser.y" /* yacc.c:1661  */
+    {
+        (yyval.operationNode) = (yyvsp[0].operationNode);
+    }
+#line 1540 "parser.cpp" /* yacc.c:1661  */
+    break;
+
+  case 31:
+#line 271 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new AdditionNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1505 "parser.cpp" /* yacc.c:1661  */
+#line 1551 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 28:
-#line 253 "parser.y" /* yacc.c:1661  */
+  case 32:
+#line 279 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new SubtractionNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1516 "parser.cpp" /* yacc.c:1661  */
+#line 1562 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 29:
-#line 261 "parser.y" /* yacc.c:1661  */
+  case 33:
+#line 287 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new MultiplicationNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1527 "parser.cpp" /* yacc.c:1661  */
+#line 1573 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 30:
-#line 269 "parser.y" /* yacc.c:1661  */
+  case 34:
+#line 295 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new ModuloNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1538 "parser.cpp" /* yacc.c:1661  */
+#line 1584 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 31:
-#line 277 "parser.y" /* yacc.c:1661  */
+  case 35:
+#line 303 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new DivisionNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1549 "parser.cpp" /* yacc.c:1661  */
+#line 1595 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 32:
-#line 285 "parser.y" /* yacc.c:1661  */
+  case 36:
+#line 311 "parser.y" /* yacc.c:1661  */
     {
         (yyval.operationNode) = new PowerNode(
             std::shared_ptr<ExpressionNode>((yyvsp[-2].expressionNode)),
             std::shared_ptr<ExpressionNode>((yyvsp[0].expressionNode))
         );
     }
-#line 1560 "parser.cpp" /* yacc.c:1661  */
+#line 1606 "parser.cpp" /* yacc.c:1661  */
     break;
 
-  case 33:
-#line 293 "parser.y" /* yacc.c:1661  */
+  case 37:
+#line 319 "parser.y" /* yacc.c:1661  */
     {
         (yyval.expressionNode) = (yyvsp[-1].expressionNode);
     }
-#line 1568 "parser.cpp" /* yacc.c:1661  */
+#line 1614 "parser.cpp" /* yacc.c:1661  */
     break;
 
 
-#line 1572 "parser.cpp" /* yacc.c:1661  */
+#line 1618 "parser.cpp" /* yacc.c:1661  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1796,7 +1842,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 297 "parser.y" /* yacc.c:1906  */
+#line 323 "parser.y" /* yacc.c:1906  */
 
 
 

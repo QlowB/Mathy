@@ -57,6 +57,28 @@ NativeFunction::NativeFunction(const std::string& name, size_t argumentCount) :
 }
 
 
+std::shared_ptr<ExpressionNode> If::evaluate(
+        Environment* e,
+        const std::vector<std::shared_ptr<ExpressionNode> >& args)
+{
+    if (args.size() != 3) {
+        throw RuntimeException("Need to specify 3 arguments for if");
+    }
+    std::shared_ptr<ExpressionNode> eval = args[0]->evaluate(e);
+    IntegerNode* intN = dynamic_cast<IntegerNode*>(eval.get());
+    
+    if (intN != nullptr) {
+        if (intN->getValue()) {
+            return args[1].get()->evaluate(e);
+        }
+        else {
+            return args[2].get()->evaluate(e);
+        }
+    }
+    return std::make_shared<FunctionCallNode>(shared_from_this(), args);
+}
+
+
 NativeNumFunction::NativeNumFunction(const std::string& name,
                                      MathFunc function,
                                      NativeNumFunction* derivative) :

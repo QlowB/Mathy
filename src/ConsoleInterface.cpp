@@ -55,12 +55,13 @@ int InputProcessor::run(void)
 
         if (end_of_file)
             break;
-        if (::expr != 0) {
+        if (::expr.get() != nullptr) {
             try {
                 std::shared_ptr<ExpressionNode> evaluated =
                         environment.evaluateExpression(::expr);
                 //evaluated = rewriter.replace(evaluated, gb);
                 ::fprintf(this->out, "%s\n", evaluated->getString().c_str());
+                ::expr = std::shared_ptr<ExpressionNode>(nullptr);
             } catch(std::exception& ex) {
                 printErrorMessage(ex.what());
             }
@@ -88,6 +89,8 @@ ConsoleInterface::ConsoleInterface(::FILE* in, ::FILE* out) :
 
 int ConsoleInterface::run(void)
 {
+    return InputProcessor::run();
+
     Environment environment;
 
     while (true) {

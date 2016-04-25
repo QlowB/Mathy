@@ -29,8 +29,10 @@
 
 //#include "Natives.h"
 
+
 class ExpressionNode;
 class Environment;
+class SubstituteRule;
 
 typedef double FloatVal;
 
@@ -69,6 +71,15 @@ public:
      * \brief returns a simplified version of this Expression
      */
     virtual std::shared_ptr<ExpressionNode> basicSimplify(Environment* e);
+
+    /*!
+     * \brief substitutes variable names with other expressions
+     *
+     * creates a new expression with all variables replaced with the
+     * corresponding expressions.
+     */
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
 
     /*!
      * \brief compare this expression to another one
@@ -157,6 +168,9 @@ public:
     virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
     
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+    
     virtual bool equals(const ExpressionNode*) const;
 };
 
@@ -172,11 +186,15 @@ protected:
 class FunctionNode :
     public ExpressionNode
 {
-    size_t argumentCount;
     std::vector<std::shared_ptr<VariableNode> > argumentNames;
     std::shared_ptr<ExpressionNode> equation;
 
 public:
+    FunctionNode(void) = default;
+
+    inline FunctionNode(const std::vector<std::shared_ptr<VariableNode> >&
+            argumentNames, const std::shared_ptr<ExpressionNode>& equation) :
+        argumentNames(argumentNames), equation(equation) {}
 
     virtual std::string getString(void) const;
 
@@ -184,6 +202,9 @@ public:
         const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
 
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
 
     virtual std::shared_ptr<ExpressionNode> getDerivative(size_t i) const;
     virtual std::shared_ptr<ExpressionNode>
@@ -214,6 +235,9 @@ public:
     virtual size_t getArgumentCount(void) const;
     virtual const std::shared_ptr<ExpressionNode>& getArgument(size_t i) const;
 
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+
     /*!
      * calculates the derivative in the i-th parameter
      */
@@ -236,10 +260,13 @@ protected:
     virtual ~OperationNode(void);
     virtual std::string getString(void) const;
     virtual std::string getOperator(void) const = 0;
+    virtual std::shared_ptr<OperationNode> clone(void) const = 0;
     
 public:
     inline const std::shared_ptr<ExpressionNode>& getLeft(void) { return a; }
     inline const std::shared_ptr<ExpressionNode>& getRight(void) { return b; }
+    virtual std::shared_ptr<ExpressionNode> substitute(
+            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
 };
 
 
@@ -253,6 +280,7 @@ public:
     virtual std::string getOperator(void) const;
     virtual std::string getString(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -274,6 +302,7 @@ public:
                  const std::shared_ptr<ExpressionNode>& b);
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -287,6 +316,7 @@ public:
     virtual std::string getString(void) const;
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -310,6 +340,7 @@ public:
     
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -322,6 +353,7 @@ public:
     
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -334,6 +366,7 @@ public:
     
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
 
 
@@ -347,7 +380,19 @@ public:
     virtual std::string getOperator(void) const;
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
     virtual std::string getString(void) const;
+    virtual std::shared_ptr<OperationNode> clone(void) const;
 };
+
+class RuntimeException :
+    public std::exception
+{
+    std::string whatStr;
+public:
+    inline RuntimeException(const std::string& whatStr) : whatStr(whatStr) {}
+    ~RuntimeException(void) throw() = default;
+    inline const char* what(void) const throw() { return whatStr.c_str(); }
+};
+
 
 
 class ArithmeticException :
