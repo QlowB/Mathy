@@ -24,7 +24,16 @@
 #include <memory>
 #include "Node.h"
 #include "Environment.h"
-
+/*
+#include <termios.h>
+#include <poll.h>
+#include <signal.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+*/
 extern std::shared_ptr<ExpressionNode> expr;
 extern int yyparse(void);
 extern FILE* yyin;
@@ -59,7 +68,6 @@ int InputProcessor::run(void)
             try {
                 std::shared_ptr<ExpressionNode> evaluated =
                         environment.evaluateExpression(::expr);
-                //evaluated = rewriter.replace(evaluated, gb);
                 ::fprintf(this->out, "%s\n", evaluated->getString().c_str());
                 ::expr = std::shared_ptr<ExpressionNode>(nullptr);
             } catch(std::exception& ex) {
@@ -83,17 +91,43 @@ void InputProcessor::printErrorMessage(const std::string& message)
 ConsoleInterface::ConsoleInterface(::FILE* in, ::FILE* out) :
     InputProcessor(in, out)
 {
-
 }
 
 
 int ConsoleInterface::run(void)
 {
-    return InputProcessor::run();
-
     Environment environment;
+/*
+    struct termios term, term2;
+    tcgetattr(STDIN_FILENO, &term2);
+    term = term2;
+    term.c_lflag &= ~ICANON;
+    term.c_cc[VMIN] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &term);
 
+    sigset_t mask = 0;
+    sigemptyset(&mask);
+
+    struct pollfd pollstruct;
+    pollstruct.events = POLLIN;
+    pollstruct.fd = STDIN_FILENO;
+    size_t count;
+*/
     while (true) {
+        /*
+        pollstruct.revents = 0;
+        int ret = ::poll(&pollstruct,
+                sizeof(pollstruct) / sizeof(struct pollfd), 0);
+        
+        if (pollstruct.revents & POLLIN)
+        {
+            char buf[1024];
+            ret = read(STDIN_FILENO, buf, sizeof(buf) - count);
+            printf("hello: %s", buf);
+        }
+        else {
+        }*/
+
         try {
             ::yyin = this->in;
             ::yyparse();
@@ -101,20 +135,27 @@ int ConsoleInterface::run(void)
             printErrorMessage(ex);
         }
 
-        if (end_of_file)
+        if (end_of_file) {
             break;
+        }
+
         if (::expr != 0) {
             try {
                 std::shared_ptr<ExpressionNode> evaluated =
                         environment.evaluateExpression(::expr);
-                //evaluated = rewriter.replace(evaluated, gb);
-                ::fprintf(this->out, "%s\n", evaluated->getString().c_str());
+                ::fprintf(this->out, "\x1b[36m" " --> " "\x1b[32m" "%s"
+                        "\x1b[0m" "\n",
+                        evaluated->getString().c_str());
+                ::expr = std::shared_ptr<ExpressionNode>(nullptr);
             } catch(std::exception& ex) {
                 printErrorMessage(ex.what());
             }
         }
     }
+    
     ::fprintf(this->out, "\n");
+
+
     return 0;
 }
 

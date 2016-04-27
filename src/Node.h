@@ -27,7 +27,6 @@
 #include <memory>
 #include <exception>
 
-//#include "Natives.h"
 
 
 class ExpressionNode;
@@ -79,7 +78,7 @@ public:
      * corresponding expressions.
      */
     virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+            const std::vector<SubstituteRule*>& rules);
 
     /*!
      * \brief compare this expression to another one
@@ -169,7 +168,7 @@ public:
     virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
     
     virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+            const std::vector<SubstituteRule*>& rules);
     
     virtual bool equals(const ExpressionNode*) const;
 };
@@ -180,36 +179,6 @@ class ParentNode :
 {
 protected:
     ParentNode(void) = default;
-};
-
-
-class FunctionNode :
-    public ExpressionNode
-{
-    std::vector<std::shared_ptr<VariableNode> > argumentNames;
-    std::shared_ptr<ExpressionNode> equation;
-
-public:
-    FunctionNode(void) = default;
-
-    inline FunctionNode(const std::vector<std::shared_ptr<VariableNode> >&
-            argumentNames, const std::shared_ptr<ExpressionNode>& equation) :
-        argumentNames(argumentNames), equation(equation) {}
-
-    virtual std::string getString(void) const;
-
-    virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e,
-        const std::vector<std::shared_ptr<ExpressionNode> >& arguments);
-
-    virtual std::shared_ptr<ExpressionNode> evaluate(Environment* e);
-
-    virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
-
-    virtual std::shared_ptr<ExpressionNode> getDerivative(size_t i) const;
-    virtual std::shared_ptr<ExpressionNode>
-        eval(Environment* e, const std::vector<std::shared_ptr
-                <ExpressionNode> >& arguments) const;
 };
 
 
@@ -236,7 +205,7 @@ public:
     virtual const std::shared_ptr<ExpressionNode>& getArgument(size_t i) const;
 
     virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+            const std::vector<SubstituteRule*>& rules);
 
     /*!
      * calculates the derivative in the i-th parameter
@@ -266,7 +235,7 @@ public:
     inline const std::shared_ptr<ExpressionNode>& getLeft(void) { return a; }
     inline const std::shared_ptr<ExpressionNode>& getRight(void) { return b; }
     virtual std::shared_ptr<ExpressionNode> substitute(
-            const std::vector<std::unique_ptr<SubstituteRule> >& rules);
+            const std::vector<SubstituteRule*>& rules);
 };
 
 

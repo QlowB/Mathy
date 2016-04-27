@@ -22,6 +22,7 @@
 %{
 #include <string>
 #include "Node.h"
+#include "FunctionNode.h"
 #include "parser.h"
 
 #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
@@ -44,10 +45,16 @@ extern void yyerror(const char *s);
 "-"                     return TOKEN(TOKEN_MINUS);
 "*"                     return TOKEN(TOKEN_MUL);
 "/"                     return TOKEN(TOKEN_DIV);
+"div"                   return TOKEN(TOKEN_DIV);
 "^"                     return TOKEN(TOKEN_POW);
 "mod"                   return TOKEN(TOKEN_MOD);
 "%"                     return TOKEN(TOKEN_MOD);
 ":="                    return TOKEN(TOKEN_ASSIGNMENT);
+
+"or"                    return TOKEN(TOKEN_OR);
+"xor"                   return TOKEN(TOKEN_XOR);
+"and"                   return TOKEN(TOKEN_AND);
+
 
 "\\"                    return TOKEN(TOKEN_BACKSLASH);
 "->"                    return TOKEN(TOKEN_ARROW);

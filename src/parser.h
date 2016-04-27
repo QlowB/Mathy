@@ -75,7 +75,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 52 "parser.y" /* yacc.c:1915  */
+#line 53 "parser.y" /* yacc.c:1915  */
 
     ExpressionNode* expressionNode;
     StatementNode* statementNode;

@@ -45,7 +45,7 @@ public:
     /*!
      * \brief run the input processing
      */
-    virtual int run();
+    virtual int run(void);
 
     /*!
      * \brief prints an error message to standard error output

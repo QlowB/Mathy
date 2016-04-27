@@ -49,7 +49,7 @@ std::shared_ptr<ExpressionNode> ExpressionNode::basicSimplify(Environment*)
 
 
 std::shared_ptr<ExpressionNode> ExpressionNode::substitute(
-        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+        const std::vector<SubstituteRule*>& rules)
 {
     return shared_from_this();
 }
@@ -178,8 +178,9 @@ std::string VariableNode::getString(void) const
 std::shared_ptr<ExpressionNode> VariableNode::evaluate(Environment* e)
 {
     VariableSymbol* vs = 0;
-    if ((vs = e->getVariable(name))) {      // double parantheses because
-        return vs->getValue()->evaluate(e); // compiler is a smartass otherwise
+    if ((vs = e->getVariable(name))) {  // double parantheses because
+                                        // compiler is a smartass otherwise
+        return vs->getValue()->evaluate(e); 
     }
     else
         return shared_from_this();
@@ -187,12 +188,12 @@ std::shared_ptr<ExpressionNode> VariableNode::evaluate(Environment* e)
 
 
 std::shared_ptr<ExpressionNode> VariableNode::substitute(
-        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+        const std::vector<SubstituteRule*>& rules)
 {
     for (auto i = rules.begin(); i != rules.end(); i++) {
-        SubstituteRule& sr = *i->get();
-        if (sr.find.lock().get()->getString() == name) {
-            return sr.replace;
+        const SubstituteRule* sr = *i;
+        if (sr->find->getString() == name) {
+            return sr->replace;
         }
     }
     return shared_from_this();
@@ -212,71 +213,6 @@ bool VariableNode::equals(const ExpressionNode* en) const
     else
         return false;
 }
-
-
-std::string FunctionNode::getString(void) const
-{
-    //printf("FunctionNode::getString()\n");
-    // TODO implement lambda notation output
-    std::string out = "(\\";
-    for (auto i = argumentNames.begin(); i != argumentNames.end(); i++) {
-        out += i->get()->getString();
-        if ((i + 1) != argumentNames.end())
-            out += " ";
-    }
-    out += " -> ";
-    if (equation.get() != nullptr)
-        out += equation.get()->getString();
-    else {
-        out += "[built in]";
-    }
-    return out + ")";
-}
-
-
-std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e,
-        const std::vector<std::shared_ptr<ExpressionNode> >& arguments)
-{
-    if (argumentNames.size() != arguments.size()) {
-        throw RuntimeException("cannot apply function");
-    }
-
-    std::vector<std::unique_ptr<SubstituteRule> > rules;
-    for (size_t i = 0; i < argumentNames.size(); i++) {
-        rules.push_back(std::unique_ptr<SubstituteRule>
-                (new SubstituteRule(argumentNames[i], arguments[i])));
-    }
-    return equation.get()->substitute(rules)->evaluate(e);
-}
-
-
-std::shared_ptr<ExpressionNode> FunctionNode::evaluate(Environment* e)
-{
-    return shared_from_this();
-}
-
-
-std::shared_ptr<ExpressionNode> FunctionNode::substitute(
-        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
-{
-    // TODO: implement function substitution
-    return shared_from_this();
-}
-
-
-std::shared_ptr<ExpressionNode> FunctionNode::getDerivative(size_t i) const
-{
-    return std::make_shared<FunctionNode>();
-}
-
-
-std::shared_ptr<ExpressionNode> FunctionNode::eval(Environment* e,
-        const std::vector<std::shared_ptr<ExpressionNode> >& arguments) const
-{
-    return std::make_shared<FunctionNode>();
-}
-
-
 FunctionCallNode::FunctionCallNode(
         const std::shared_ptr<ExpressionNode>& function) :
             function(function)
@@ -377,7 +313,7 @@ FunctionCallNode::getArgument(size_t i) const
 
 
 std::shared_ptr<ExpressionNode> FunctionCallNode::substitute(
-        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+        const std::vector<SubstituteRule*>& rules)
 {
     std::vector<std::shared_ptr<ExpressionNode> > newArguments;
     for (size_t i = 0; i < arguments.size(); i++) {
@@ -457,7 +393,7 @@ std::string OperationNode::getString(void) const
 
 
 std::shared_ptr<ExpressionNode> OperationNode::substitute(
-        const std::vector<std::unique_ptr<SubstituteRule> >& rules)
+        const std::vector<SubstituteRule*>& rules)
 {
     std::shared_ptr<OperationNode> ret = clone();
     ret.get()->a = ret.get()->a.get()->substitute(rules);

@@ -5,7 +5,7 @@ LNFLAGS     :=
 YACC        := bison
 LEX         := flex
 
-OBJECTS     := main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o sys.o
+OBJECTS     := main.o Natives.o Node.o parser.o Rewriter.o ConsoleInterface.o Environment.o tokens.o sys.o FunctionNode.o
 EXECUTABLE  := mathy
 
 #bit32: CXXFLAGS += -m32
@@ -40,7 +40,7 @@ parser.cpp: parser.y
 	$(YACC) --defines=parser.h -o $@ $<
 
 tokens.cpp: tokens.l
-	$(LEX) -o $@ $<
+	$(LEX) -o$@ $<
 
 .PHONY: clean
 clean:

@@ -26,7 +26,7 @@
 #include <unordered_map>
 #include <map>
 
-#include "Node.h"
+#include "FunctionNode.h"
 //#include "Function.h"
 
 class ExpressionNode;
@@ -52,7 +52,6 @@ class NativeFunction :
 public:
     NativeFunction(const std::string& name, size_t argumentCount);
     
-    virtual std::string getString(void) const { return getName(); }
     inline const std::string& getName(void) const { return name; }
     /*virtual std::shared_ptr<ExpressionNode> eval(
         Environment* e,

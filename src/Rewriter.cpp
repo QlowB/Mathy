@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "Rewriter.h"
+#include "FunctionNode.h"
 
 AnyValue::AnyValue(bool defined) :
 	defined(defined)

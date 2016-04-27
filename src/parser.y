@@ -22,6 +22,7 @@
 %{
 
 #include "Node.h"
+#include "FunctionNode.h"
 #include "Natives.h"
 #include <cstdlib>
 #include <exception>
@@ -97,7 +98,7 @@ using sp = std::shared_ptr<T>;
 %type <functionCallNode> functionCall
 %type <functionNode> lambdaExpression
 %type <expressionList> expressionList
-%type <lambdaArguments> lambdaArguments
+%type <lambdaArguments> lambdaArguments lambdaArgumentsPart
 
 %type <operationNode> operation
 %type <operationNode> addition subtraction multiplication modulo division power
@@ -105,7 +106,7 @@ using sp = std::shared_ptr<T>;
 %type <statementNode> statement
 
 /* operator precedence */
-%nonassoc TOKEN_ASSIGNMENT
+%right TOKEN_ASSIGNMENT
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
 %left TOKEN_POW
@@ -214,31 +215,39 @@ expressionList:
 
 functionCall:
     expression TOKEN_LPAREN expressionList TOKEN_RPAREN {
-        /*Function* func = Functions::getNativeFunction(*$1, $3->size());
-        if (func == 0) {
-            std::cout << "no function " << *$1 << " with " << $3->size() << " arguments.\n";
-            func = new Function(*$1, $3->size());
-        }*/
         $$ = new FunctionCallNode(std::shared_ptr<ExpressionNode>($1), *$3);
-        //printf("helloooo: %d\n", $$->getArgumentCount());
         delete $3;
         $3 = nullptr;
+    }
+    |
+    expression TOKEN_LPAREN TOKEN_RPAREN {
+        $$ = new FunctionCallNode(std::shared_ptr<ExpressionNode>($1),
+            std::vector<std::shared_ptr<ExpressionNode> >());
     };
 
 lambdaExpression:
-    lambdaArguments TOKEN_ARROW expression {
-        $$ = new FunctionNode(*$1, std::shared_ptr<ExpressionNode> ($3));
-        delete $1; $1 = nullptr;
+    TOKEN_BACKSLASH lambdaArguments TOKEN_ARROW expression {
+        $$ = new FunctionNode(*$2, std::shared_ptr<ExpressionNode> ($4));
+        delete $2; $2 = nullptr;
     };
 
 lambdaArguments:
-    TOKEN_BACKSLASH variable {
+    lambdaArgumentsPart TOKEN_RPAREN {
+        $$ = $1;
+    }
+    |
+    TOKEN_LPAREN TOKEN_RPAREN {
+        $$ = new std::vector<std::shared_ptr<VariableNode> >();
+    };
+
+lambdaArgumentsPart:
+    TOKEN_LPAREN variable {
         $$ = new std::vector<std::shared_ptr<VariableNode> >();
         $$->push_back(std::shared_ptr<VariableNode> ($2));
     }
     |
-    lambdaArguments variable {
-        $1->push_back(std::shared_ptr<VariableNode> ($2));
+    lambdaArgumentsPart TOKEN_COMMA variable {
+        $1->push_back(std::shared_ptr<VariableNode> ($3));
         $$ = $1;
     };
 

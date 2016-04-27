@@ -30,10 +30,10 @@
 
 struct SubstituteRule
 {
-    std::weak_ptr<VariableNode> find;
+    const VariableNode* find;
     std::shared_ptr<ExpressionNode> replace;
 
-    inline SubstituteRule(const std::weak_ptr<VariableNode>& find,
+    inline SubstituteRule(const VariableNode* find,
                           const std::shared_ptr<ExpressionNode>& replace) :
         find(find),
         replace(replace)
