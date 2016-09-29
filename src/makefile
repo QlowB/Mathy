@@ -40,7 +40,7 @@ parser.cpp: parser.y
 	$(YACC) --defines=parser.h -o $@ $<
 
 tokens.cpp: tokens.l
-	$(LEX) -o $@ $<
+	$(LEX) -o$@ $<
 
 .PHONY: clean
 clean:
