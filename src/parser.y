@@ -30,6 +30,7 @@
 #include <cstdio>
 #include <iostream>
 
+
 /*! \brief root node of the AST */
 std::shared_ptr<ExpressionNode> expr;
 
@@ -84,7 +85,7 @@ using sp = std::shared_ptr<T>;
 %token <token> TOKEN_NEWLINE
 %token <token> TOKEN_LPAREN TOKEN_RPAREN TOKEN_LBRACE TOKEN_RBRACE TOKEN_COMMA
 %token <token> TOKEN_DOT TOKEN_COLON
-%token <token> TOKEN_BACKSLASH TOKEN_ARROW
+%token <token> TOKEN_BACKSLASH TOKEN_EXCLAMATION TOKEN_ARROW
 %token <string> TOKEN_OPERATOR
 
 /*
@@ -102,14 +103,22 @@ using sp = std::shared_ptr<T>;
 
 %type <operationNode> operation
 %type <operationNode> addition subtraction multiplication modulo division power
+%type <operationNode> and or xor
 %type <assignmentNode> assignment
 %type <statementNode> statement
 
+
 /* operator precedence */
 %right TOKEN_ASSIGNMENT
+%left TOKEN_OR TOKEN_XOR
+%left TOKEN_AND
 %left TOKEN_PLUS TOKEN_MINUS
 %left TOKEN_MUL TOKEN_DIV TOKEN_MOD
 %left TOKEN_POW
+
+/* general precedence */
+%right "lambdaExpression"
+%right "parenthExpr"
 
 %start oneExpression
 
@@ -226,7 +235,7 @@ functionCall:
     };
 
 lambdaExpression:
-    TOKEN_BACKSLASH lambdaArguments TOKEN_ARROW expression {
+    TOKEN_EXCLAMATION lambdaArguments TOKEN_ARROW expression {
         $$ = new FunctionNode(*$2, std::shared_ptr<ExpressionNode> ($4));
         delete $2; $2 = nullptr;
     };
@@ -273,6 +282,18 @@ operation:
     }
     |
     power {
+        $$ = $1;
+    }
+    |
+    or {
+        $$ = $1;
+    }
+    |
+    xor {
+        $$ = $1;
+    }
+    |
+    and {
         $$ = $1;
     };
 
@@ -323,6 +344,33 @@ power:
             std::shared_ptr<ExpressionNode>($3)
         );
     };
+
+and:
+    expression TOKEN_AND expression {
+        $$ = new PowerNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
+    };
+
+or:
+    expression TOKEN_OR expression {
+        $$ = new PowerNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
+    };
+
+
+xor:
+    expression TOKEN_XOR expression {
+        $$ = new PowerNode(
+            std::shared_ptr<ExpressionNode>($1),
+            std::shared_ptr<ExpressionNode>($3)
+        );
+    };
+
+
 
 parenthExpr:
     TOKEN_LPAREN expression TOKEN_RPAREN {

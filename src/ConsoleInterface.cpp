@@ -24,6 +24,7 @@
 #include <memory>
 #include "Node.h"
 #include "Environment.h"
+#include <cstdio>
 /*
 #include <termios.h>
 #include <poll.h>
@@ -141,6 +142,8 @@ int ConsoleInterface::run(void)
 
         if (::expr != 0) {
             try {
+                //int a = getch();
+                //printf("yaaay! %d\n", a);
                 std::shared_ptr<ExpressionNode> evaluated =
                         environment.evaluateExpression(::expr);
                 ::fprintf(this->out, "\x1b[36m" " --> " "\x1b[32m" "%s"

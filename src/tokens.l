@@ -24,9 +24,16 @@
 #include "Node.h"
 #include "FunctionNode.h"
 #include "parser.h"
+#include <stdio.h>
 
 #define SAVE_TOKEN yylval.string = new std::string(yytext, yyleng)
 #define TOKEN(t) (yylval.token = t)
+
+
+#ifdef _WIN32
+#define fileno _fileno
+#endif
+
 
 bool end_of_file = false;
 extern "C" int yywrap() { end_of_file = true; return 1; }
@@ -55,8 +62,8 @@ extern void yyerror(const char *s);
 "xor"                   return TOKEN(TOKEN_XOR);
 "and"                   return TOKEN(TOKEN_AND);
 
-
 "\\"                    return TOKEN(TOKEN_BACKSLASH);
+"!"                     return TOKEN(TOKEN_EXCLAMATION);
 "->"                    return TOKEN(TOKEN_ARROW);
 
 "("                     return TOKEN(TOKEN_LPAREN);

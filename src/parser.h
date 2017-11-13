@@ -58,15 +58,19 @@ extern int yydebug;
     TOKEN_DOT = 268,
     TOKEN_COLON = 269,
     TOKEN_BACKSLASH = 270,
-    TOKEN_ARROW = 271,
-    TOKEN_OPERATOR = 272,
-    TOKEN_ASSIGNMENT = 273,
-    TOKEN_PLUS = 274,
-    TOKEN_MINUS = 275,
-    TOKEN_MUL = 276,
-    TOKEN_DIV = 277,
-    TOKEN_MOD = 278,
-    TOKEN_POW = 279
+    TOKEN_EXCLAMATION = 271,
+    TOKEN_ARROW = 272,
+    TOKEN_OPERATOR = 273,
+    TOKEN_ASSIGNMENT = 274,
+    TOKEN_OR = 275,
+    TOKEN_XOR = 276,
+    TOKEN_AND = 277,
+    TOKEN_PLUS = 278,
+    TOKEN_MINUS = 279,
+    TOKEN_MUL = 280,
+    TOKEN_DIV = 281,
+    TOKEN_MOD = 282,
+    TOKEN_POW = 283
   };
 #endif
 
@@ -75,7 +79,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 53 "parser.y" /* yacc.c:1915  */
+#line 54 "parser.y" /* yacc.c:1915  */
 
     ExpressionNode* expressionNode;
     StatementNode* statementNode;
@@ -99,7 +103,7 @@ union YYSTYPE
     int token;
     std::string* string;
 
-#line 103 "parser.h" /* yacc.c:1915  */
+#line 107 "parser.h" /* yacc.c:1915  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

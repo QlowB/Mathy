@@ -25,6 +25,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <sstream>
+#include <cstdio>
 
 #include "Environment.h"
 #include "Natives.h"

@@ -1,6 +1,6 @@
 CXX         := g++
-WARNFLAGS   := -Wno-deprecated-register
-CXXFLAGS    := $(WARNFLAGS) -std=c++11
+WARNFLAGS   :=
+CXXFLAGS    := $(WARNFLAGS) -std=gnu++0x
 LNFLAGS     :=
 YACC        := bison
 LEX         := flex
